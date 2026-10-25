@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Jeu de l'Oie Revisité - Édition Cartoon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --outline: #1e293b;
+        }
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #e0f2fe;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 25%),
+                radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 20%),
+                radial-gradient(#bae6fd 2px, transparent 2px);
+            background-size: 100% 100%, 100% 100%, 28px 28px;
+            color: #1e293b;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, h4, .font-cartoon {
+            font-family: 'Fredoka', sans-serif;
+            letter-spacing: 0.02em;
+        }
+
+        /* Cartoon Neo-Brutalist Cards & Buttons */
+        .cartoon-card {
+            background: #ffffff;
+            border: 3px solid var(--outline);
+            box-shadow: 0 6px 0 var(--outline);
+            border-radius: 24px;
+        }
+        .cartoon-panel {
+            background: #f8fafc;
+            border: 3px solid var(--outline);
+            box-shadow: 0 4px 0 var(--outline);
+            border-radius: 18px;
+        }
+        .cartoon-btn {
+            font-family: 'Fredoka', sans-serif;
+            border: 3px solid var(--outline);
+            box-shadow: 0 4px 0 var(--outline);
+            transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.12s ease, background-color 0.15s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+        .cartoon-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 var(--outline);
+        }
+        .cartoon-btn:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 var(--outline);
+        }
+        .cartoon-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .cartoon-input {
+            border: 2.5px solid var(--outline);
+            box-shadow: inset 0 2px 0 rgba(0,0,0,0.06);
+            font-family: 'Fredoka', sans-serif;
+            transition: all 0.15s ease;
+        }
+        .cartoon-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+            border: 2px solid var(--outline);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #fbbf24;
+            border-radius: 10px;
+            border: 2px solid var(--outline);
+        }
+
+        .board-grid {
+            display: grid;
+            gap: 8px;
+        }
+        .board-tile {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            min-height: 64px;
+            border: 3px solid var(--outline);
+            box-shadow: 0 4px 0 var(--outline);
+            border-radius: 16px;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+            user-select: none;
+            overflow: visible;
+        }
+        .board-tile:hover {
+            transform: translateY(-4px) scale(1.04);
+            z-index: 30;
+            box-shadow: 0 8px 0 var(--outline);
+        }
+        .tile-step-highlight {
+            animation: tilePop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 25;
+        }
+        @keyframes tilePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.14) translateY(-6px); box-shadow: 0 10px 0 var(--outline), 0 0 0 5px #fde047; }
+            100% { transform: scale(1); }
+        }
+
+        .tile-fx-shake {
+            animation: tileShake 0.55s ease-in-out;
+        }
+        @keyframes tileShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-5px, -3px) rotate(-6deg); }
+            40% { transform: translate(5px, 3px) rotate(6deg); }
+            60% { transform: translate(-4px, 2px) rotate(-4deg); }
+            80% { transform: translate(4px, -2px) rotate(4deg); }
+        }
+
+        /* Pawn Animations */
+        .pawn-token {
+            border: 2.5px solid var(--outline);
+            box-shadow: 0 3px 0 var(--outline);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .pawn-active-bounce {
+            animation: idleBounce 1.1s infinite ease-in-out;
+        }
+        @keyframes idleBounce {
+            0%, 100% { transform: translateY(0) scale(1, 1); }
+            30% { transform: translateY(-6px) scale(0.94, 1.08); }
+            60% { transform: translateY(0) scale(1.06, 0.94); }
+        }
+        .pawn-hopping {
+            animation: hopJump 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes hopJump {
+            0% { transform: translateY(0) scale(1.15, 0.85); }
+            45% { transform: translateY(-18px) scale(0.9, 1.15) rotate(-8deg); }
+            80% { transform: translateY(2px) scale(1.12, 0.88) rotate(5deg); }
+            100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
+        }
+
+        /* Spin & Dice Animations */
+        .vortex-spin {
+            animation: spinCartoon 3.2s linear infinite;
+        }
+        @keyframes spinCartoon {
+            0% { transform: rotate(0deg) scale(0.95); }
+            50% { transform: rotate(180deg) scale(1.08); }
+            100% { transform: rotate(360deg) scale(0.95); }
+        }
+
+        .die-cartoon {
+            border: 3px solid var(--outline);
+            box-shadow: 0 5px 0 var(--outline);
+            background: #ffffff;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .die-rolling {
+            animation: tumbleDie 0.42s infinite ease-in-out;
+        }
+        @keyframes tumbleDie {
+            0% { transform: rotate(0deg) scale(1) translateY(0); }
+            25% { transform: rotate(-18deg) scale(1.1) translateY(-6px); }
+            50% { transform: rotate(15deg) scale(0.95) translateY(3px); }
+            75% { transform: rotate(-12deg) scale(1.08) translateY(-4px); }
+            100% { transform: rotate(0deg) scale(1) translateY(0); }
+        }
+
+        .coin-flip-anim {
+            animation: cartoonCoinFlip 0.55s infinite ease-in-out;
+        }
+        @keyframes cartoonCoinFlip {
+            0% { transform: rotateY(0deg) translateY(0); }
+            50% { transform: rotateY(180deg) translateY(-14px) scale(1.15); }
+            100% { transform: rotateY(360deg) translateY(0); }
+        }
+
+        /* Floating Comic Callout Popups */
+        .comic-pop {
+            animation: comicPopAnim 1.15s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            pointer-events: none;
+        }
+        @keyframes comicPopAnim {
+            0% { opacity: 0; transform: translate(-50%, 10px) scale(0.3) rotate(-10deg); }
+            25% { opacity: 1; transform: translate(-50%, -18px) scale(1.15) rotate(4deg); }
+            75% { opacity: 1; transform: translate(-50%, -26px) scale(1) rotate(-2deg); }
+            100% { opacity: 0; transform: translate(-50%, -42px) scale(0.8); }
+        }
+
+        /* Confetti Particle */
+        .confetti-piece {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--outline);
+            z-index: 100;
+            pointer-events: none;
+            animation: confettiFall 2.4s ease-in forwards;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="selection:bg-amber-300 selection:text-slate-900">
+
+    <!-- Floating FX Layer for Comic Callouts & Particles -->
+    <div id="fx-overlay-layer" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+    <header class="sticky top-0 z-30 bg-amber-300 border-b-4 border-slate-800 px-4 py-3 shadow-md">
+        <div class="max-w-[1480px] mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div id="header-goose-logo" class="w-12 h-12 rounded-2xl bg-white border-3 border-slate-800 flex items-center justify-center p-1.5 shadow-[0_3px_0_#1e293b]">
+                    <!-- SVG Goose injected by JS -->
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-wide">
+                        Le Jeu de l'Oie Revisité
+                    </h1>
+                    <p class="text-xs font-bold text-slate-700 hidden sm:block">Atelier IA Générative • Édition Cartoon 100% Customisable</p>
+                </div>
+            </div>
+
+            <!-- Active Global Law Banner -->
+            <div id="active-law-banner" class="hidden items-center gap-2 px-4 py-1.5 rounded-full bg-rose-400 border-3 border-slate-800 text-slate-900 text-xs md:text-sm font-bold shadow-[0_3px_0_#1e293b] animate-bounce">
+                <div id="active-law-icon" class="w-5 h-5"></div>
+                <span id="active-law-text">Aucune loi active</span>
+                <span id="active-law-turns" class="px-2 py-0.5 rounded-full bg-white border-2 border-slate-800 text-slate-900 font-bold text-xs"></span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2.5">
+                <button id="btn-toggle-test" onclick="toggleTestPanel()" class="cartoon-btn px-3.5 py-2 rounded-xl bg-emerald-300 hover:bg-emerald-200 text-slate-900 text-xs md:text-sm font-bold flex items-center gap-1.5">
+                    <span id="icon-btn-test" class="w-5 h-5 inline-block"></span>
+                    <span class="hidden sm:inline">Mode Test (Étape 4)</span>
+                </button>
+                <button onclick="openLegendModal()" class="cartoon-btn px-3.5 py-2 rounded-xl bg-sky-300 hover:bg-sky-200 text-slate-900 text-xs md:text-sm font-bold flex items-center gap-1.5">
+                    <span id="icon-btn-rules" class="w-5 h-5 inline-block"></span>
+                    <span class="hidden sm:inline">Règles & Cases</span>
+                </button>
+                <button onclick="showSetupScreen()" class="cartoon-btn px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-900 text-xs md:text-sm font-bold flex items-center gap-1.5">
+                    <span id="icon-btn-settings" class="w-5 h-5 inline-block"></span>
+                    <span>Paramétrer / Nouvelle Partie</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="setup-screen" class="max-w-6xl mx-auto p-4 md:p-6">
+        <div class="cartoon-card p-5 md:p-8 bg-white">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b-3 border-slate-200">
+                <div>
+                    <span class="inline-block px-3 py-1 rounded-full bg-indigo-100 border-2 border-slate-800 text-indigo-900 text-xs font-bold uppercase">
+                        Configuration Sans Limites
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-bold mt-2 text-slate-900">Paramétrage du Plateau & des Joueurs</h2>
+                    <p class="text-sm text-slate-600 mt-1">Ajustez librement le nombre de cases, de dés, de joueurs, de trous noirs et de cases spéciales !</p>
+                </div>
+                <button onclick="startGameFromSetup()" class="cartoon-btn px-7 py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-lg flex items-center justify-center gap-2.5 shrink-0">
+                    <span id="icon-btn-start" class="w-6 h-6 inline-block"></span>
+                    <span>Lancer la Partie !</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+                <!-- Left Column: Unlimited Board, Players, Dice & Black Hole Settings -->
+                <div class="lg:col-span-6 space-y-6">
+                    <div class="cartoon-panel p-5 bg-amber-50/70 space-y-4">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <span id="icon-setup-general" class="w-6 h-6 inline-block"></span>
+                            <span>Paramètres Généraux (Sans Limites)</span>
+                        </h3>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Cases Totales</label>
+                                <input type="number" id="setup-total-tiles" min="5" value="63" onchange="handleGeneralSetupChange()"
+                                    class="cartoon-input w-full rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-900">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Total Joueurs</label>
+                                <input type="number" id="setup-total-players" min="2" value="4" onchange="handlePlayerCountChange()"
+                                    class="cartoon-input w-full rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-900">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Joueurs Humains</label>
+                                <input type="number" id="setup-human-players" min="0" value="1" onchange="handlePlayerCountChange()"
+                                    class="cartoon-input w-full rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-900">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nombre de Dés</label>
+                                <input type="number" id="setup-dice-count" min="1" value="2" onchange="handleDiceCountChange()"
+                                    class="cartoon-input w-full rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-900">
+                            </div>
+
+                            <div class="col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Disposition du Plateau</label>
+                                <select id="setup-board-layout" class="cartoon-input w-full rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-900">
+                                    <option value="spiral" selected>Spirale Classique (Escargot)</option>
+                                    <option value="serpentine">Serpentin (Zig-Zag)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Black Hole Unlimited Settings -->
+                        <div class="pt-3 border-t-2 border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Fréquence Trous Noirs (Tours)</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="setup-blackhole-freq" min="1" value="5"
+                                        class="cartoon-input w-24 rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-900 text-center">
+                                    <span class="text-xs font-bold text-slate-600">tour(s)</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Trous Noirs par Apparition</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="setup-blackhole-count" min="0" value="1"
+                                        class="cartoon-input w-24 rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-900 text-center">
+                                    <span class="text-xs font-bold text-slate-600">trou(s) noir(s)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Players Customization List -->
+                    <div class="cartoon-panel p-5 bg-sky-50/70">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <span id="icon-setup-players" class="w-6 h-6 inline-block"></span>
+                                <span>Personnalisation des Pions</span>
+                            </h3>
+                            <span class="text-xs font-bold text-slate-600">Dessinés 100% en code SVG</span>
+                        </div>
+                        <div id="setup-players-container" class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Special Tiles Customization (No Limits) -->
+                <div class="lg:col-span-6">
+                    <div class="cartoon-panel p-5 bg-emerald-50/60 h-full flex flex-col justify-between">
+                        <div>
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <span id="icon-setup-tiles" class="w-6 h-6 inline-block"></span>
+                                    <span>Quantité de Cases Spéciales</span>
+                                </h3>
+                                <button onclick="resetDefaultTileConfig()" class="cartoon-btn px-3 py-1 rounded-xl bg-white text-xs font-bold text-slate-800">
+                                    Valeurs par défaut
+                                </button>
+                            </div>
+                            <p class="text-xs font-bold text-slate-600 mb-4">
+                                Choisissez librement le nombre de chaque case spéciale. Si vous mettez plus de cases spéciales que la taille du plateau, le plateau s'agrandira automatiquement !
+                            </p>
+
+                            <div id="setup-tiles-container" class="space-y-2.5 max-h-[450px] overflow-y-auto pr-1">
+                                <!-- Populated via JS -->
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t-2 border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-700">
+                            <span>Cases spéciales demandées : <strong id="setup-total-special-count" class="text-indigo-700 text-sm">0</strong></span>
+                            <span id="portal-warning-badge" class="hidden px-2.5 py-1 rounded-lg bg-rose-200 border-2 border-slate-800 text-rose-900">
+                                Portails désactivés (1 seul dé)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section id="game-screen" class="hidden max-w-[1480px] mx-auto p-3 md:p-5">
+
+        <!-- Step 4 Active Testing Drawer -->
+        <div id="test-panel" class="hidden mb-5 cartoon-card p-4 bg-emerald-100">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2.5">
+                    <div id="icon-test-header" class="w-7 h-7"></div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Panneau de Test Actif — Étape 4 de l'Atelier</h3>
+                        <p class="text-xs font-bold text-slate-700">Forcez les dés, téléportez un pion avec animation ou déclenchez les événements instantanément.</p>
+                    </div>
+                </div>
+                <button onclick="toggleTestPanel()" class="cartoon-btn px-3 py-1 rounded-xl bg-white text-xs font-bold text-slate-900">Fermer</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div class="cartoon-panel p-3 bg-white flex items-center justify-between gap-2">
+                    <div>
+                        <div class="font-bold text-slate-900">Forcer le prochain lancer</div>
+                        <div class="text-slate-600">Ex: 4,4 (séparés par virgule)</div>
+                    </div>
+                    <input id="test-force-dice" type="text" placeholder="ex: 3,3" class="cartoon-input w-24 px-2 py-1.5 rounded-xl bg-amber-50 text-slate-900 text-center font-bold">
+                </div>
+
+                <div class="cartoon-panel p-3 bg-white flex items-center justify-between gap-2">
+                    <div>
+                        <div class="font-bold text-slate-900">Téléporter joueur actif</div>
+                        <div class="text-slate-600">Numéro de case cible</div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <input id="test-teleport-tile" type="number" min="0" value="9" class="cartoon-input w-20 px-2 py-1.5 rounded-xl bg-sky-50 text-slate-900 text-center font-bold">
+                        <button onclick="testTeleportActivePlayer()" class="cartoon-btn px-3 py-1.5 rounded-xl bg-indigo-400 text-slate-900 font-bold">Go</button>
+                    </div>
+                </div>
+
+                <div class="cartoon-panel p-3 bg-white flex items-center justify-between gap-2">
+                    <div>
+                        <div class="font-bold text-slate-900">Événements Directs</div>
+                        <div class="text-slate-600">Sans attendre le tour</div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="spawnBlackHoles(true)" class="cartoon-btn px-3 py-1.5 rounded-xl bg-purple-300 text-slate-900 font-bold">Trous Noirs</button>
+                        <button onclick="openLawModal(players[currentPlayerIndex], () => {})" class="cartoon-btn px-3 py-1.5 rounded-xl bg-amber-300 text-slate-900 font-bold">Voter Loi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <!-- LEFT / CENTER: THE DYNAMIC CARTOON BOARD -->
+            <div class="lg:col-span-8 cartoon-card p-3 sm:p-5 bg-white">
+                <!-- Board Top Status Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 px-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-3.5 py-1.5 rounded-xl bg-amber-200 border-2 border-slate-800 text-xs font-bold text-slate-900 shadow-[0_2px_0_#1e293b]">
+                            Tour Global : <strong id="round-counter" class="text-sm">1</strong>
+                        </span>
+                        <span id="blackhole-countdown-badge" class="px-3.5 py-1.5 rounded-xl bg-purple-200 border-2 border-slate-800 text-xs font-bold text-slate-900 shadow-[0_2px_0_#1e293b]">
+                            Prochain(s) Trou(s) Noir(s) : <strong id="bh-countdown">5</strong> tour(s)
+                        </span>
+                    </div>
+
+                    <div class="text-xs font-bold text-slate-600 hidden sm:block">
+                        Survolez ou cliquez sur une case pour l'inspecter
+                    </div>
+                </div>
+
+                <!-- Dynamic Board Grid Container -->
+                <div class="max-h-[680px] overflow-y-auto p-1">
+                    <div id="board-grid" class="board-grid">
+                        <!-- Generated dynamically by JS -->
+                    </div>
+                </div>
+
+                <!-- Quick Tile Inspector Bar -->
+                <div id="tile-inspector" class="mt-4 px-4 py-3 rounded-2xl bg-sky-100 border-3 border-slate-800 shadow-[0_3px_0_#1e293b] flex items-center justify-between text-xs sm:text-sm">
+                    <div class="flex items-center gap-3">
+                        <div id="inspector-icon" class="w-9 h-9 rounded-xl bg-white border-2 border-slate-800 p-1.5 shrink-0"></div>
+                        <div>
+                            <div id="inspector-title" class="font-bold text-slate-900 text-sm">Case 0 — Départ</div>
+                            <div id="inspector-desc" class="text-slate-700 font-semibold text-xs">Point de départ de tous les pions.</div>
+                        </div>
+                    </div>
+                    <span id="inspector-coords" class="px-2.5 py-1 rounded-lg bg-white border-2 border-slate-800 text-xs text-slate-900 font-bold">#0</span>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDEBAR: CONTROLS, PLAYERS & EVENT LOG -->
+            <div class="lg:col-span-4 space-y-5">
+
+                <!-- Active Turn & Dice Control Card -->
+                <div class="cartoon-card p-5 bg-amber-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs uppercase tracking-wider text-slate-700 font-bold">Joueur Actif</span>
+                        <span id="turn-type-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-white border-2 border-slate-800 text-slate-900 shadow-[0_2px_0_#1e293b]">
+                            Humain
+                        </span>
+                    </div>
+
+                    <!-- Current Player Banner -->
+                    <div id="active-player-card" class="flex items-center gap-3.5 p-3 rounded-2xl bg-white border-3 border-slate-800 shadow-[0_4px_0_#1e293b] mb-4">
+                        <div id="active-player-avatar" class="w-12 h-12 rounded-2xl flex items-center justify-center p-2 border-2 border-slate-800"></div>
+                        <div class="flex-1 min-w-0">
+                            <div id="active-player-name" class="font-bold text-lg text-slate-900 truncate font-cartoon">Joueur 1</div>
+                            <div id="active-player-pos" class="text-xs font-bold text-slate-600">Case actuelle : <strong class="text-indigo-700">0</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- Animated Cartoon Dice Display Container -->
+                    <div id="dice-container" class="flex flex-wrap items-center justify-center gap-2.5 my-4 min-h-[68px] max-h-[160px] overflow-y-auto p-1">
+                        <!-- SVG Dice boxes rendered via JS -->
+                    </div>
+
+                    <div id="dice-result-summary" class="text-center text-xs font-bold text-slate-800 mb-3 min-h-[20px]">
+                        Prêt à lancer les dés !
+                    </div>
+
+                    <!-- Roll Dice Button -->
+                    <button id="btn-roll-dice" onclick="triggerTurnRoll()" class="cartoon-btn w-full py-3.5 px-5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-base flex items-center justify-center gap-2.5">
+                        <span id="icon-btn-roll" class="w-6 h-6 inline-block"></span>
+                        <span id="btn-roll-text">Lancer les Dés</span>
+                    </button>
+                </div>
+
+                <!-- Players Standings Card -->
+                <div class="cartoon-card p-4 bg-white">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-3 flex items-center justify-between">
+                        <span>Classement & Statuts</span>
+                        <span id="goal-tile-label" class="text-xs font-bold px-2 py-0.5 rounded-lg bg-amber-200 border-2 border-slate-800 text-slate-900">Objectif : 63</span>
+                    </h3>
+                    <div id="players-sidebar-list" class="space-y-2 max-h-[240px] overflow-y-auto pr-1">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Event Log Card -->
+                <div class="cartoon-card p-4 bg-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">
+                            Journal d'Événements
+                        </h3>
+                        <button onclick="clearGameLog()" class="text-xs font-bold text-rose-600 hover:underline">Effacer</button>
+                    </div>
+                    <div id="game-log" class="h-52 overflow-y-auto space-y-2 pr-1 text-xs font-bold">
+                        <!-- Log messages appended here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== INTERACTIVE MODALS ==================== -->
+    <div id="modal-backdrop" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div id="modal-content" class="cartoon-card max-w-lg w-full p-6 bg-white transform transition-all">
+            <!-- Dynamically populated by openModal() -->
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // 1. 100% CODE-DRAWN CARTOON SVG GRAPHICS (ZERO EMOJIS!)
+        // ============================================================================
+
+        const CARTOON_SVGS = {
+            // PAWNS
+            pawn_goose: `<svg viewBox="0 0 32 32" class="w-full h-full"><path d="M22 5c-2.5 0-4.5 2-4.5 4.5 0 1.2.4 2.2 1 3l-2 4.5H11c-4 0-7 2.5-7 6 0 2.8 2.5 5 6.5 5h10c3.5 0 6-2.5 6-6 0-2.2-1.2-4-3-4.8l1.5-4.2c1.2-.8 2-2.2 2-3.8C27 6.8 24.8 5 22 5z" fill="currentColor" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M26 8.5l4 1.5-4 1.5z" fill="#f97316" stroke="#1e293b" stroke-width="2" stroke-linejoin="round"/><circle cx="23" cy="8.5" r="1.6" fill="#1e293b"/></svg>`,
+            pawn_crown: `<svg viewBox="0 0 32 32" class="w-full h-full"><path d="M4 24l3-15 6.5 6.5L16 7l2.5 8.5L25 9l3 15H4z" fill="currentColor" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><rect x="4" y="24" width="24" height="4" rx="2" fill="#fbbf24" stroke="#1e293b" stroke-width="2.5"/></svg>`,
+            pawn_rocket: `<svg viewBox="0 0 32 32" class="w-full h-full"><path d="M16 3c4 4 6.5 9.5 6.5 15.5 0 3-1.5 5.5-1.5 5.5l3.5 3.5v2.5h-5l-3.5-2.5-3.5 2.5h-5v-2.5L11 24s-1.5-2.5-1.5-5.5C9.5 12.5 12 7 16 3z" fill="currentColor" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.2" fill="#e0f2fe" stroke="#1e293b" stroke-width="2.2"/></svg>`,
+            pawn_star: `<svg viewBox="0 0 32 32" class="w-full h-full"><path d="M16 3l3.9 7.9 8.7 1.3-6.3 6.1 1.5 8.7L16 22.9 8.2 27l1.5-8.7-6.3-6.1 8.7-1.3L16 3z" fill="currentColor" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><circle cx="13" cy="14" r="1.4" fill="#1e293b"/><circle cx="19" cy="14" r="1.4" fill="#1e293b"/><path d="M14 17.5q2 2 4 0" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/></svg>`,
+            pawn_bolt: `<svg viewBox="0 0 32 32" class="w-full h-full"><path d="M18 3L7 17h8l-2 12 12-15h-8l1-11z" fill="currentColor" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/></svg>`,
+            pawn_hat: `<svg viewBox="0 0 32 32" class="w-full h-full"><path d="M16 4L8 23h16L16 4z" fill="currentColor" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="16" cy="24" rx="12" ry="3.5" fill="currentColor" stroke="#1e293b" stroke-width="2.5"/><circle cx="16" cy="4" r="2.5" fill="#fde047" stroke="#1e293b" stroke-width="2"/></svg>`,
+            pawn_cat: `<svg viewBox="0 0 32 32" class="w-full h-full"><path d="M6 25V9l5 4h10l5-4v16c0 2.5-4.5 4-10 4S6 27.5 6 25z" fill="currentColor" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><circle cx="12" cy="18" r="1.6" fill="#1e293b"/><circle cx="20" cy="18" r="1.6" fill="#1e293b"/><path d="M14.5 21.5h3l-1.5 1.8z" fill="#f43f5e"/></svg>`,
+            pawn_frog: `<svg viewBox="0 0 32 32" class="w-full h-full"><circle cx="10" cy="10" r="4.5" fill="currentColor" stroke="#1e293b" stroke-width="2.5"/><circle cx="22" cy="10" r="4.5" fill="currentColor" stroke="#1e293b" stroke-width="2.5"/><ellipse cx="16" cy="19" rx="11" ry="8" fill="currentColor" stroke="#1e293b" stroke-width="2.5"/><circle cx="10" cy="10" r="1.8" fill="#1e293b"/><circle cx="22" cy="10" r="1.8" fill="#1e293b"/><path d="M11 20q5 4 10 0" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+
+            // TILE & EVENT ICONS
+            tile_start: `<svg viewBox="0 0 36 36" class="w-full h-full"><path d="M8 5v26" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round"/><path d="M8 7h20l-4 6 4 6H8V7z" fill="#10b981" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="5" r="2.5" fill="#fbbf24" stroke="#1e293b" stroke-width="2"/></svg>`,
+            tile_finish: `<svg viewBox="0 0 36 36" class="w-full h-full"><path d="M10 8h16v8c0 4.5-3.5 8-8 8s-8-3.5-8-8V8z" fill="#fbbf24" stroke="#1e293b" stroke-width="2.5"/><path d="M10 10H5v4c0 3 2 5 5 5M26 10h5v4c0 3-2 5-5 5" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M18 24v5M12 29h12" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/><path d="M18 11l1.5 3 3.3.5-2.4 2.3.6 3.2-3-1.6-3 1.6.6-3.2-2.4-2.3 3.3-.5z" fill="#fff" stroke="#1e293b" stroke-width="1.5"/></svg>`,
+            tile_normal: `<svg viewBox="0 0 36 36" class="w-full h-full"><circle cx="18" cy="18" r="7" fill="#cbd5e1" stroke="#1e293b" stroke-width="2.2"/></svg>`,
+            tile_goose: `<svg viewBox="0 0 36 36" class="w-full h-full"><path d="M24 6c-3 0-5 2.2-5 5 0 1.4.5 2.5 1.2 3.4L18 19.5h-5.5c-4.5 0-7.5 2.8-7.5 6.5 0 3 2.8 5.5 7 5.5h11c4 0 6.5-2.8 6.5-6.5 0-2.5-1.4-4.5-3.5-5.2l1.8-4.8c1.4-.9 2.2-2.4 2.2-4C30 8 27.5 6 24 6z" fill="#ffffff" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M28.5 9.5l5.5 2-5.5 2z" fill="#f97316" stroke="#1e293b" stroke-width="2" stroke-linejoin="round"/><circle cx="25" cy="10" r="1.8" fill="#1e293b"/><path d="M13 24c2-1.5 5-1.5 7 0" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/></svg>`,
+            tile_tunnel: `<svg viewBox="0 0 36 36" class="w-full h-full"><path d="M5 30V17c0-7.2 5.8-13 13-13s13 5.8 13 13v13H5z" fill="#64748b" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M10 30V18c0-4.4 3.6-8 8-8s8 3.6 8 8v12H10z" fill="#0f172a" stroke="#1e293b" stroke-width="2.5"/><path d="M14 30l3-9M22 30l-3-9M12 27h12M14 23h8" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/></svg>`,
+            tile_law: `<svg viewBox="0 0 36 36" class="w-full h-full"><rect x="7" y="27" width="22" height="4" rx="2" fill="#92400e" stroke="#1e293b" stroke-width="2.5"/><path d="M14 14l9 9" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round"/><rect x="8" y="7" width="12" height="7" rx="2" transform="rotate(-35 14 10.5)" fill="#fbbf24" stroke="#1e293b" stroke-width="2.5"/></svg>`,
+            tile_portal: `<svg viewBox="0 0 36 36" class="w-full h-full"><circle cx="18" cy="18" r="13" fill="#e879f9" stroke="#1e293b" stroke-width="2.5"/><path d="M18 8c5.5 0 10 4.5 10 10s-4.5 10-10 10-7-3.5-7-7 3-6 6-6 4 2 4 4-1.5 3-3 3" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round"/></svg>`,
+            tile_inn: `<svg viewBox="0 0 36 36" class="w-full h-full"><path d="M21 8c-4.5 0-8 3.5-8 8 0 2 .8 3.8 2 5.2L10 26l4 4 4.8-5c1.4 1.2 3.2 2 5.2 2 4.5 0 8-3.5 8-8s-3.5-11-11-11z" fill="#d97706" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8.5" cy="27.5" r="3" fill="#fef3c7" stroke="#1e293b" stroke-width="2.2"/><circle cx="12.5" cy="30.5" r="3" fill="#fef3c7" stroke="#1e293b" stroke-width="2.2"/></svg>`,
+            tile_angry_goose: `<svg viewBox="0 0 36 36" class="w-full h-full"><circle cx="18" cy="19" r="11" fill="#ffffff" stroke="#1e293b" stroke-width="2.5"/><path d="M18 19l11 3-11 4z" fill="#ef4444" stroke="#1e293b" stroke-width="2.2" stroke-linejoin="round"/><path d="M11 13l7 3M24 13l-5 3" stroke="#1e293b" stroke-width="2.8" stroke-linecap="round"/><circle cx="15" cy="16.5" r="1.8" fill="#ef4444"/><path d="M7 7l3 3m0-3l-3 3" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+            tile_well: `<svg viewBox="0 0 36 36" class="w-full h-full"><rect x="7" y="20" width="22" height="11" rx="2" fill="#94a3b8" stroke="#1e293b" stroke-width="2.5"/><circle cx="18" cy="12" r="7" fill="#fbbf24" stroke="#1e293b" stroke-width="2.5"/><path d="M18 8v8M14 12h8" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/></svg>`,
+            tile_mirror: `<svg viewBox="0 0 36 36" class="w-full h-full"><ellipse cx="18" cy="18" rx="10" ry="13" fill="#fbbf24" stroke="#1e293b" stroke-width="2.5"/><ellipse cx="18" cy="18" rx="7" ry="10" fill="#bae6fd" stroke="#1e293b" stroke-width="2"/><path d="M14 13l6 6M15 19l4 4" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+            tile_fox: `<svg viewBox="0 0 36 36" class="w-full h-full"><path d="M6 8l4 18 8 5 8-5 4-18-7 6h-10L6 8z" fill="#f97316" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M10 26l8-6 8 6-8 5-8-5z" fill="#ffffff" stroke="#1e293b" stroke-width="2" stroke-linejoin="round"/><circle cx="14" cy="19" r="1.6" fill="#1e293b"/><circle cx="22" cy="19" r="1.6" fill="#1e293b"/><circle cx="18" cy="27" r="2.2" fill="#1e293b"/></svg>`,
+            tile_blackhole: `<svg viewBox="0 0 36 36" class="w-full h-full"><circle cx="18" cy="18" r="13" fill="#3b0764" stroke="#1e293b" stroke-width="2.5"/><path d="M18 7a11 11 0 0 1 11 11M18 29a11 11 0 0 1-11-11" stroke="#c084fc" stroke-width="2.8" stroke-linecap="round" fill="none"/><circle cx="18" cy="18" r="5" fill="#090d16" stroke="#a855f7" stroke-width="2"/></svg>`,
+
+            // LAWS & UI ICONS
+            law_crab: `<svg viewBox="0 0 36 36" class="w-full h-full"><ellipse cx="18" cy="21" rx="9" ry="6" fill="#fb7185" stroke="#1e293b" stroke-width="2.5"/><circle cx="10" cy="11" r="4" fill="#fb7185" stroke="#1e293b" stroke-width="2.5"/><circle cx="26" cy="11" r="4" fill="#fb7185" stroke="#1e293b" stroke-width="2.5"/><circle cx="15" cy="19" r="1.5" fill="#1e293b"/><circle cx="21" cy="19" r="1.5" fill="#1e293b"/></svg>`,
+            law_speed: `<svg viewBox="0 0 36 36" class="w-full h-full"><circle cx="18" cy="18" r="13" fill="#ffffff" stroke="#ef4444" stroke-width="4"/><circle cx="18" cy="18" r="13" fill="none" stroke="#1e293b" stroke-width="2"/><text x="18" y="23" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="14" fill="#1e293b">3</text></svg>`,
+            law_equal: `<svg viewBox="0 0 36 36" class="w-full h-full"><circle cx="18" cy="18" r="13" fill="#f43f5e" stroke="#1e293b" stroke-width="2.5"/><rect x="10" y="13" width="16" height="3.5" rx="1.5" fill="#fde047" stroke="#1e293b" stroke-width="1.5"/><rect x="10" y="19.5" width="16" height="3.5" rx="1.5" fill="#fde047" stroke="#1e293b" stroke-width="1.5"/></svg>`,
+            law_strike: `<svg viewBox="0 0 36 36" class="w-full h-full"><path d="M18 18v14" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round"/><rect x="6" y="6" width="24" height="13" rx="3" fill="#fef08a" stroke="#1e293b" stroke-width="2.5"/><path d="M11 12.5h14" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>`,
+
+            ui_dice: `<svg viewBox="0 0 32 32" class="w-full h-full"><rect x="4" y="4" width="24" height="24" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="2.5"/><circle cx="10" cy="10" r="2.2" fill="#1e293b"/><circle cx="16" cy="16" r="2.2" fill="#ef4444"/><circle cx="22" cy="22" r="2.2" fill="#1e293b"/><circle cx="22" cy="10" r="2.2" fill="#1e293b"/><circle cx="10" cy="22" r="2.2" fill="#1e293b"/></svg>`,
+            ui_flask: `<svg viewBox="0 0 32 32" class="w-full h-full"><path d="M12 4h8M14 4v7l-7 13a3 3 0 0 0 2.6 4.5h12.8A3 3 0 0 0 25 24l-7-13V4" fill="#6ee7b7" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+            ui_book: `<svg viewBox="0 0 32 32" class="w-full h-full"><path d="M4 7c4 0 8 1.5 12 4 4-2.5 8-4 12-4v18c-4 0-8 1.5-12 4-4-2.5-8-4-12-4V7z" fill="#fde047" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/><path d="M16 11v18" stroke="#1e293b" stroke-width="2.5"/></svg>`,
+            ui_settings: `<svg viewBox="0 0 32 32" class="w-full h-full"><circle cx="16" cy="16" r="9" fill="#cbd5e1" stroke="#1e293b" stroke-width="2.5"/><circle cx="16" cy="16" r="4" fill="#ffffff" stroke="#1e293b" stroke-width="2.5"/><path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M25.2 6.8l-2.8 2.8M9.6 22.4l-2.8 2.8" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/></svg>`,
+            ui_play: `<svg viewBox="0 0 32 32" class="w-full h-full"><polygon points="8,5 26,16 8,27" fill="#10b981" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/></svg>`,
+            ui_human: `<svg viewBox="0 0 24 24" class="w-full h-full"><circle cx="12" cy="12" r="9" fill="#fde047" stroke="#1e293b" stroke-width="2.2"/><circle cx="9" cy="10" r="1.5" fill="#1e293b"/><circle cx="15" cy="10" r="1.5" fill="#1e293b"/><path d="M8.5 14.5q3.5 3 7 0" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/></svg>`,
+            ui_bot: `<svg viewBox="0 0 24 24" class="w-full h-full"><path d="M12 2v4" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/><rect x="4" y="6" width="16" height="13" rx="4" fill="#93c5fd" stroke="#1e293b" stroke-width="2.2"/><circle cx="9" cy="12" r="1.8" fill="#1e293b"/><circle cx="15" cy="12" r="1.8" fill="#1e293b"/><path d="M9 16h6" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/></svg>`,
+            ui_swords: `<svg viewBox="0 0 32 32" class="w-full h-full"><path d="M6 26L26 6M5 21l6 6M26 26L6 6M21 27l6-6" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/></svg>`
+        };
+
+        function getSvg(key) {
+            return CARTOON_SVGS[key] || CARTOON_SVGS.tile_normal;
+        }
+
+        // Renders a cartoon die face with SVG pips (for values 1..6) or clear number if >6
+        function renderDieSvgFace(val) {
+            if (typeof val !== "number" || val < 1 || val > 6) {
+                return getSvg("ui_dice");
+            }
+            const pipCoords = {
+                1: [[16, 16]],
+                2: [[9, 9], [23, 23]],
+                3: [[9, 9], [16, 16], [23, 23]],
+                4: [[9, 9], [23, 9], [9, 23], [23, 23]],
+                5: [[9, 9], [23, 9], [16, 16], [9, 23], [23, 23]],
+                6: [[9, 8], [23, 8], [9, 16], [23, 16], [9, 24], [23, 24]]
+            };
+            const circles = pipCoords[val].map(([cx, cy]) =>
+                `<circle cx="${cx}" cy="${cy}" r="2.7" fill="${val === 1 || val === 4 ? '#ef4444' : '#1e293b'}"/>`
+            ).join("");
+            return `<svg viewBox="0 0 32 32" class="w-full h-full">${circles}</svg>`;
+        }
+
+        // Directional Arrow SVG for board path
+        function getArrowSvg(dir) {
+            const rot = dir === "right" ? 0 : dir === "down" ? 90 : dir === "left" ? 180 : -90;
+            return `<svg viewBox="0 0 20 20" class="w-3.5 h-3.5" style="transform:rotate(${rot}deg)"><path d="M4 10h11m-4-4l4 4-4 4" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        }
+
+        const PAWN_CATALOG = {
+            goose: { name: "Oie Royale", svgKey: "pawn_goose" },
+            crown: { name: "Couronne", svgKey: "pawn_crown" },
+            rocket: { name: "Fusée", svgKey: "pawn_rocket" },
+            star: { name: "Étoile", svgKey: "pawn_star" },
+            bolt: { name: "Éclair", svgKey: "pawn_bolt" },
+            hat: { name: "Chapeau Magique", svgKey: "pawn_hat" },
+            cat: { name: "Chaton", svgKey: "pawn_cat" },
+            frog: { name: "Grenouille", svgKey: "pawn_frog" }
+        };
+
+        const PLAYER_COLORS = [
+            { name: "Jaune Soleil", hex: "#fde047" },
+            { name: "Menthe", hex: "#6ee7b7" },
+            { name: "Fraise", hex: "#fda4af" },
+            { name: "Ciel", hex: "#7dd3fc" },
+            { name: "Lilas", hex: "#d8b4fe" },
+            { name: "Mandarine", hex: "#fdba74" },
+            { name: "Citron Vert", hex: "#bef264" },
+            { name: "Corail", hex: "#fca5a5" }
+        ];
+
+        const SPECIAL_TILE_TYPES = {
+            goose: {
+                id: "goose",
+                name: "Case Oie",
+                svgKey: "tile_goose",
+                bgClass: "bg-amber-200",
+                defaultActive: true,
+                defaultCount: 6,
+                desc: "Double le déplacement ! Le pion rebondit et avance à nouveau du même score."
+            },
+            tunnel: {
+                id: "tunnel",
+                name: "Case Tunnel",
+                svgKey: "tile_tunnel",
+                bgClass: "bg-cyan-200",
+                defaultActive: true,
+                defaultCount: 4,
+                desc: "Réseau souterrain : propulse immédiatement vers la case Tunnel reliée suivante."
+            },
+            law: {
+                id: "law",
+                name: "Case Loi",
+                svgKey: "tile_law",
+                bgClass: "bg-indigo-200",
+                defaultActive: true,
+                defaultCount: 4,
+                desc: "Permet au joueur de voter l'une des 4 Lois globales qui changent les règles."
+            },
+            portal: {
+                id: "portal",
+                name: "Case Portail",
+                svgKey: "tile_portal",
+                bgClass: "bg-fuchsia-200",
+                defaultActive: true,
+                defaultCount: 3,
+                requiresMultiDice: true,
+                desc: "Lancer de sauvetage : sans un double aux dés, retour à la case départ (0) !"
+            },
+            inn: {
+                id: "inn",
+                name: "Auberge du Gavage",
+                svgKey: "tile_inn",
+                bgClass: "bg-orange-200",
+                defaultActive: true,
+                defaultCount: 3,
+                desc: "Passe 1 tour pour digérer, puis déplacement divisé par 2 au tour suivant."
+            },
+            angry_goose: {
+                id: "angry_goose",
+                name: "L'Oie en Colère",
+                svgKey: "tile_angry_goose",
+                bgClass: "bg-rose-200",
+                defaultActive: true,
+                defaultCount: 4,
+                desc: "Duel de dés contre un adversaire au choix ! Le perdant recule de la différence."
+            },
+            well: {
+                id: "well",
+                name: "Puits à Souhaits Trafiqué",
+                svgKey: "tile_well",
+                bgClass: "bg-emerald-200",
+                defaultActive: true,
+                defaultCount: 4,
+                desc: "Pile ou Face : Pile = Geyser (+10 cases) ! Face = Glissade (-5 cases) !"
+            },
+            mirror: {
+                id: "mirror",
+                name: "Miroir aux Alouettes",
+                svgKey: "tile_mirror",
+                bgClass: "bg-sky-200",
+                defaultActive: true,
+                defaultCount: 3,
+                desc: "Téléporte le joueur sur la case symétrique par rapport au centre du plateau."
+            },
+            fox: {
+                id: "fox",
+                name: "Le Renard Rusé",
+                svgKey: "tile_fox",
+                bgClass: "bg-red-200",
+                defaultActive: true,
+                defaultCount: 3,
+                desc: "Panique ! Le joueur s'enfuit en arrière jusqu'à la Case Oie la plus proche (ou Départ)."
+            }
+        };
+
+        const LAWS_CATALOG = [
+            {
+                id: "reverse_gravity",
+                name: "Loi de la Gravité Inversée",
+                subtitle: "Marche en crabe (1 tour complet)",
+                svgKey: "law_crab",
+                durationRounds: 1,
+                desc: "Au prochain tour de chaque joueur, tout le monde RECULE de la valeur de ses dés au lieu d'avancer !"
+            },
+            {
+                id: "speed_tax",
+                name: "Taxe sur la Vitesse",
+                subtitle: "Limitation à 3 (1 tour complet)",
+                svgKey: "law_speed",
+                durationRounds: 1,
+                desc: "Pendant 1 tour complet, tout dé qui affiche plus de 3 (4, 5 ou 6) est immédiatement ramené à 1 !"
+            },
+            {
+                id: "goose_communism",
+                name: "Communisme de l'Oie",
+                subtitle: "Égalité immédiate !",
+                svgKey: "law_equal",
+                durationRounds: 0,
+                desc: "Effet immédiat : calcule la case moyenne de tous les joueurs et téléporte tout le monde sur cette case !"
+            },
+            {
+                id: "goose_strike",
+                name: "Grève des Oies",
+                subtitle: "Syndicat en colère (2 tours complets)",
+                svgKey: "law_strike",
+                durationRounds: 2,
+                desc: "Pendant 2 tours complets, toutes les Cases Oies perdent leur effet et deviennent de simples cases de repos."
+            }
+        ];
+
+        let setupPlayersDraft = [];
+        let setupTilesDraft = {};
+
+        let gameConfig = {
+            totalTiles: 63,
+            totalPlayers: 4,
+            humanPlayers: 1,
+            diceCount: 2,
+            boardLayout: "spiral",
+            blackHoleFreq: 5,
+            blackHoleCount: 1
+        };
+
+        let boardTiles = [];
+        let players = [];
+        let currentPlayerIndex = 0;
+        let roundNumber = 1;
+        let turnsInCurrentRound = 0;
+        let activeLaw = null;
+        let activeBlackHoleTiles = []; // Array of tile numbers where black holes sit
+        let isTurnBusy = false;
+        let gameEnded = false;
+
+        function mountStaticIcons() {
+            const map = {
+                "header-goose-logo": "tile_goose",
+                "icon-btn-test": "ui_flask",
+                "icon-btn-rules": "ui_book",
+                "icon-btn-settings": "ui_settings",
+                "icon-btn-start": "ui_play",
+                "icon-setup-general": "ui_dice",
+                "icon-setup-players": "ui_human",
+                "icon-setup-tiles": "tile_goose",
+                "icon-test-header": "ui_flask",
+                "icon-btn-roll": "ui_dice"
+            };
+            Object.entries(map).forEach(([id, svgKey]) => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = getSvg(svgKey);
+            });
+        }
+
+        function ensurePlayerDraftCapacity(targetCount) {
+            const pawnKeys = Object.keys(PAWN_CATALOG);
+            while (setupPlayersDraft.length < targetCount) {
+                const i = setupPlayersDraft.length;
+                setupPlayersDraft.push({
+                    name: i === 0 ? "Explorateur" : `Bot Oie #${i}`,
+                    colorIndex: i % PLAYER_COLORS.length,
+                    iconKey: pawnKeys[i % pawnKeys.length]
+                });
+            }
+        }
+
+        function initSetupDefaults() {
+            mountStaticIcons();
+            ensurePlayerDraftCapacity(6);
+            resetDefaultTileConfig(false);
+            handlePlayerCountChange();
+            handleDiceCountChange();
+        }
+
+        function resetDefaultTileConfig(shouldRender = true) {
+            setupTilesDraft = {};
+            Object.values(SPECIAL_TILE_TYPES).forEach(t => {
+                setupTilesDraft[t.id] = {
+                    active: t.defaultActive,
+                    count: t.defaultCount
+                };
+            });
+            if (shouldRender) {
+                renderSetupTilesList();
+                handleDiceCountChange();
+            }
+        }
+
+        function handleGeneralSetupChange() {
+            const totalTilesInput = document.getElementById("setup-total-tiles");
+            let val = parseInt(totalTilesInput.value, 10);
+            if (isNaN(val) || val < 5) val = 5;
+            totalTilesInput.value = val;
+            renderSetupTilesList();
+        }
+
+        function handlePlayerCountChange() {
+            const totalInput = document.getElementById("setup-total-players");
+            const humanInput = document.getElementById("setup-human-players");
+
+            let total = Math.max(2, parseInt(totalInput.value, 10) || 2);
+            let humans = parseInt(humanInput.value, 10);
+            if (isNaN(humans) || humans < 0) humans = 0;
+            if (humans > total) humans = total;
+
+            totalInput.value = total;
+            humanInput.value = humans;
+
+            ensurePlayerDraftCapacity(total);
+
+            for (let i = 0; i < total; i++) {
+                const isHuman = i < humans;
+                if (isHuman && setupPlayersDraft[i].name.startsWith("Bot ")) {
+                    setupPlayersDraft[i].name = `Joueur ${i + 1}`;
+                } else if (!isHuman && setupPlayersDraft[i].name.startsWith("Joueur ")) {
+                    setupPlayersDraft[i].name = `Bot Oie #${i}`;
+                }
+            }
+
+            renderSetupPlayersList(total, humans);
+        }
+
+        function handleDiceCountChange() {
+            const diceInput = document.getElementById("setup-dice-count");
+            let diceCount = Math.max(1, parseInt(diceInput.value, 10) || 1);
+            diceInput.value = diceCount;
+
+            const portalWarning = document.getElementById("portal-warning-badge");
+            if (diceCount === 1) {
+                setupTilesDraft.portal.active = false;
+                if (portalWarning) portalWarning.classList.remove("hidden");
+            } else {
+                if (portalWarning) portalWarning.classList.add("hidden");
+            }
+            renderSetupTilesList();
+        }
+
+        function renderSetupPlayersList(total, humans) {
+            const container = document.getElementById("setup-players-container");
+            container.innerHTML = "";
+
+            for (let i = 0; i < total; i++) {
+                const isHuman = i < humans;
+                const p = setupPlayersDraft[i];
+                const colorObj = PLAYER_COLORS[p.colorIndex];
+                const iconSvg = getSvg(PAWN_CATALOG[p.iconKey].svgKey);
+
+                const row = document.createElement("div");
+                row.className = "flex flex-wrap sm:flex-nowrap items-center gap-2.5 p-2.5 rounded-2xl bg-white border-2 border-slate-800 shadow-[0_3px_0_#1e293b]";
+
+                row.innerHTML = `
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center p-1.5 shrink-0 border-2 border-slate-800" style="background:${colorObj.hex}; color:#ffffff;">
+                        ${iconSvg}
+                    </div>
+                    <div class="flex-1 min-w-[120px]">
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <span class="w-4 h-4 inline-block">${getSvg(isHuman ? 'ui_human' : 'ui_bot')}</span>
+                            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border border-slate-800 ${isHuman ? 'bg-amber-200 text-slate-900' : 'bg-sky-200 text-slate-900'}">
+                                ${isHuman ? 'Humain' : 'Bot IA'}
+                            </span>
+                        </div>
+                        <input type="text" value="${p.name}" oninput="setupPlayersDraft[${i}].name = this.value"
+                            class="cartoon-input w-full bg-slate-50 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-900" />
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 mb-0.5">Pion</label>
+                        <select onchange="setupPlayersDraft[${i}].iconKey = this.value; handlePlayerCountChange()"
+                            class="cartoon-input bg-slate-50 rounded-lg px-2 py-1 text-xs font-bold text-slate-900">
+                            ${Object.entries(PAWN_CATALOG).map(([k, val]) => `<option value="${k}" ${k === p.iconKey ? 'selected' : ''}>${val.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 mb-0.5">Couleur</label>
+                        <select onchange="setupPlayersDraft[${i}].colorIndex = parseInt(this.value,10); handlePlayerCountChange()"
+                            class="cartoon-input bg-slate-50 rounded-lg px-2 py-1 text-xs font-bold text-slate-900">
+                            ${PLAYER_COLORS.map((c, idx) => `<option value="${idx}" ${idx === p.colorIndex ? 'selected' : ''}>${c.name}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        function renderSetupTilesList() {
+            const container = document.getElementById("setup-tiles-container");
+            const diceCount = Math.max(1, parseInt(document.getElementById("setup-dice-count").value, 10) || 1);
+            container.innerHTML = "";
+
+            let totalSpecial = 0;
+
+            Object.values(SPECIAL_TILE_TYPES).forEach(tileDef => {
+                const cfg = setupTilesDraft[tileDef.id];
+                const isDisabledByDice = tileDef.requiresMultiDice && diceCount === 1;
+                if (cfg.active && !isDisabledByDice) {
+                    totalSpecial += cfg.count;
+                }
+
+                const card = document.createElement("div");
+                card.className = `p-3 rounded-2xl border-2 border-slate-800 transition flex items-center justify-between gap-3 ${
+                    isDisabledByDice
+                        ? 'bg-slate-200 opacity-55 cursor-not-allowed'
+                        : cfg.active
+                            ? 'bg-white shadow-[0_3px_0_#1e293b]'
+                            : 'bg-slate-100 opacity-75'
+                }`;
+
+                card.innerHTML = `
+                    <label class="flex items-start gap-3 flex-1 ${isDisabledByDice ? 'cursor-not-allowed' : 'cursor-pointer'}">
+                        <input type="checkbox" ${cfg.active && !isDisabledByDice ? 'checked' : ''} ${isDisabledByDice ? 'disabled' : ''}
+                            onchange="toggleTileTypeConfig('${tileDef.id}', this.checked)"
+                            class="mt-1.5 w-4 h-4 rounded accent-indigo-600" />
+                        <div class="w-10 h-10 rounded-xl ${tileDef.bgClass} border-2 border-slate-800 p-1.5 shrink-0">
+                            ${getSvg(tileDef.svgKey)}
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <span>${tileDef.name}</span>
+                                ${isDisabledByDice ? '<span class="text-[10px] px-2 py-0.5 rounded bg-rose-200 border border-slate-800 text-rose-900">Requiert 2+ dés</span>' : ''}
+                            </div>
+                            <p class="text-[11px] font-semibold text-slate-600 leading-snug mt-0.5">${tileDef.desc}</p>
+                        </div>
+                    </label>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <span class="text-[11px] font-bold text-slate-700">Qté:</span>
+                        <input type="number" min="0" value="${cfg.count}"
+                            ${!cfg.active || isDisabledByDice ? 'disabled' : ''}
+                            onchange="updateTileTypeCount('${tileDef.id}', this.value)"
+                            class="cartoon-input w-16 bg-amber-50 rounded-xl px-2 py-1 text-xs text-center text-slate-900 font-bold" />
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            const totalBadge = document.getElementById("setup-total-special-count");
+            if (totalBadge) totalBadge.textContent = totalSpecial;
+        }
+
+        function toggleTileTypeConfig(id, checked) {
+            setupTilesDraft[id].active = checked;
+            renderSetupTilesList();
+        }
+
+        function updateTileTypeCount(id, val) {
+            let num = parseInt(val, 10);
+            if (isNaN(num) || num < 0) num = 0;
+            setupTilesDraft[id].count = num;
+            renderSetupTilesList();
+        }
+
+        function startGameFromSetup() {
+            let totalTiles = Math.max(5, parseInt(document.getElementById("setup-total-tiles").value, 10) || 63);
+            const totalPlayers = Math.max(2, parseInt(document.getElementById("setup-total-players").value, 10) || 4);
+            const humanPlayers = Math.min(totalPlayers, Math.max(0, parseInt(document.getElementById("setup-human-players").value, 10) || 0));
+            const diceCount = Math.max(1, parseInt(document.getElementById("setup-dice-count").value, 10) || 2);
+            const boardLayout = document.getElementById("setup-board-layout").value;
+            const bhFreq = Math.max(1, parseInt(document.getElementById("setup-blackhole-freq").value, 10) || 5);
+            const bhCount = Math.max(0, parseInt(document.getElementById("setup-blackhole-count").value, 10) || 0);
+
+            // Calculate total special tiles requested; if more than totalTiles - 2, automatically expand totalTiles!
+            let requestedSpecials = 0;
+            Object.values(SPECIAL_TILE_TYPES).forEach(t => {
+                const cfg = setupTilesDraft[t.id];
+                if (cfg.active && !(t.requiresMultiDice && diceCount === 1)) {
+                    requestedSpecials += cfg.count;
+                }
+            });
+            if (requestedSpecials > totalTiles - 2) {
+                totalTiles = requestedSpecials + 2;
+                document.getElementById("setup-total-tiles").value = totalTiles;
+            }
+
+            gameConfig = {
+                totalTiles,
+                totalPlayers,
+                humanPlayers,
+                diceCount,
+                boardLayout,
+                blackHoleFreq: bhFreq,
+                blackHoleCount: bhCount
+            };
+
+            ensurePlayerDraftCapacity(totalPlayers);
+            players = [];
+            for (let i = 0; i < totalPlayers; i++) {
+                const draft = setupPlayersDraft[i];
+                const col = PLAYER_COLORS[draft.colorIndex % PLAYER_COLORS.length];
+                players.push({
+                    id: i,
+                    name: draft.name.trim() || `Joueur ${i + 1}`,
+                    isBot: i >= humanPlayers,
+                    colorHex: col.hex,
+                    iconKey: draft.iconKey,
+                    tile: 0,
+                    skipTurns: 0,
+                    heavyNextTurn: false
+                });
+            }
+
+            generateBoardTiles();
+
+            currentPlayerIndex = 0;
+            roundNumber = 1;
+            turnsInCurrentRound = 0;
+            activeLaw = null;
+            activeBlackHoleTiles = [];
+            isTurnBusy = false;
+            gameEnded = false;
+
+            document.getElementById("setup-screen").classList.add("hidden");
+            document.getElementById("game-screen").classList.remove("hidden");
+            document.getElementById("goal-tile-label").textContent = `Objectif : Case ${gameConfig.totalTiles}`;
+            document.getElementById("test-teleport-tile").max = gameConfig.totalTiles;
+
+            clearGameLog();
+            addLog("ui_play", `Partie lancée : ${totalPlayers} joueurs, ${diceCount} dé(s) sur un plateau de ${totalTiles} cases !`, "bg-amber-100");
+            if (bhCount > 0) {
+                addLog("tile_blackhole", `${bhCount} Trou(s) Noir(s) apparaîtront tous les ${bhFreq} tour(s).`, "bg-purple-100");
+            }
+
+            renderAll();
+            checkAndRunCurrentTurn();
+        }
+
+        function showSetupScreen() {
+            isTurnBusy = true;
+            document.getElementById("game-screen").classList.add("hidden");
+            document.getElementById("setup-screen").classList.remove("hidden");
+            handlePlayerCountChange();
+            handleDiceCountChange();
+        }
+
+        function generateBoardTiles() {
+            const N = gameConfig.totalTiles;
+            boardTiles = [];
+            for (let i = 0; i <= N; i++) {
+                boardTiles.push({
+                    index: i,
+                    type: i === 0 ? "start" : i === N ? "finish" : "normal",
+                    linkedTunnel: null
+                });
+            }
+
+            let availableIndices = [];
+            for (let i = 1; i < N; i++) {
+                availableIndices.push(i);
+            }
+
+            // Place Goose tiles
+            if (setupTilesDraft.goose.active && setupTilesDraft.goose.count > 0) {
+                const count = setupTilesDraft.goose.count;
+                if (count === 6 && N === 63) {
+                    const classicGeese = [9, 18, 27, 36, 45, 54];
+                    classicGeese.forEach(idx => {
+                        boardTiles[idx].type = "goose";
+                        availableIndices = availableIndices.filter(x => x !== idx);
+                    });
+                } else {
+                    shuffleArray(availableIndices);
+                    for (let c = 0; c < count && availableIndices.length > 0; c++) {
+                        const idx = availableIndices.pop();
+                        boardTiles[idx].type = "goose";
+                    }
+                }
+            }
+
+            shuffleArray(availableIndices);
+
+            // Place Tunnels
+            if (setupTilesDraft.tunnel.active && setupTilesDraft.tunnel.count >= 1) {
+                let tunnelIndices = [];
+                for (let c = 0; c < setupTilesDraft.tunnel.count && availableIndices.length > 0; c++) {
+                    tunnelIndices.push(availableIndices.pop());
+                }
+                tunnelIndices.sort((a, b) => a - b);
+                for (let t = 0; t < tunnelIndices.length; t++) {
+                    const currentIdx = tunnelIndices[t];
+                    const nextIdx = tunnelIndices[(t + 1) % tunnelIndices.length];
+                    boardTiles[currentIdx].type = "tunnel";
+                    boardTiles[currentIdx].linkedTunnel = nextIdx;
+                }
+            }
+
+            // Place all other enabled special tiles
+            Object.keys(SPECIAL_TILE_TYPES).forEach(typeKey => {
+                if (typeKey === "goose" || typeKey === "tunnel") return;
+                const cfg = setupTilesDraft[typeKey];
+                if (!cfg.active || cfg.count <= 0) return;
+                if (SPECIAL_TILE_TYPES[typeKey].requiresMultiDice && gameConfig.diceCount === 1) return;
+
+                for (let c = 0; c < cfg.count && availableIndices.length > 0; c++) {
+                    const idx = availableIndices.pop();
+                    boardTiles[idx].type = typeKey;
+                }
+            });
+        }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+
+        // Dynamic matrix builder for ANY number of tiles (Spiral or Serpentine)
+        function getBoardLayoutMatrix() {
+            const totalCells = gameConfig.totalTiles + 1;
+            const cols = Math.max(4, Math.min(12, Math.ceil(Math.sqrt(totalCells))));
+            const rows = Math.ceil(totalCells / cols);
+            const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
+
+            if (gameConfig.boardLayout === "serpentine") {
+                let tileIdx = 0;
+                for (let r = rows - 1; r >= 0; r--) {
+                    const leftToRight = (rows - 1 - r) % 2 === 0;
+                    if (leftToRight) {
+                        for (let c = 0; c < cols; c++) {
+                            if (tileIdx < totalCells) {
+                                const dir = c < cols - 1 ? "right" : "up";
+                                grid[r][c] = { tileIdx: tileIdx++, dir };
+                            }
+                        }
+                    } else {
+                        for (let c = cols - 1; c >= 0; c--) {
+                            if (tileIdx < totalCells) {
+                                const dir = c > 0 ? "left" : "up";
+                                grid[r][c] = { tileIdx: tileIdx++, dir };
+                            }
+                        }
+                    }
+                }
+                return { grid, rows, cols };
+            }
+
+            // Clockwise Spiral from outer top-left inward
+            let top = 0, bottom = rows - 1, left = 0, right = cols - 1;
+            let tileIdx = 0;
+
+            while (top <= bottom && left <= right) {
+                for (let c = left; c <= right; c++) {
+                    if (tileIdx < totalCells) {
+                        grid[top][c] = { tileIdx: tileIdx++, dir: c < right ? "right" : "down" };
+                    }
+                }
+                top++;
+
+                for (let r = top; r <= bottom; r++) {
+                    if (tileIdx < totalCells) {
+                        grid[r][right] = { tileIdx: tileIdx++, dir: r < bottom ? "down" : "left" };
+                    }
+                }
+                right--;
+
+                if (top <= bottom) {
+                    for (let c = right; c >= left; c--) {
+                        if (tileIdx < totalCells) {
+                            grid[bottom][c] = { tileIdx: tileIdx++, dir: c > left ? "left" : "up" };
+                        }
+                    }
+                    bottom--;
+                }
+
+                if (left <= right) {
+                    for (let r = bottom; r >= top; r--) {
+                        if (tileIdx < totalCells) {
+                            grid[r][left] = { tileIdx: tileIdx++, dir: r > top ? "up" : "right" };
+                        }
+                    }
+                    left++;
+                }
+            }
+            return { grid, rows, cols };
+        }
+
+        function renderAll() {
+            renderBoard();
+            renderSidebarPlayers();
+            renderActivePlayerPanel();
+            renderTopBanners();
+        }
+
+        function renderBoard() {
+            const container = document.getElementById("board-grid");
+            container.innerHTML = "";
+            const { grid, rows, cols } = getBoardLayoutMatrix();
+            container.style.gridTemplateColumns = `repeat(${cols}, minmax(56px, 1fr))`;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const cellInfo = grid[r][c];
+                    if (!cellInfo) {
+                        // Decorative cartoon pond filler for non-square counts
+                        const deco = document.createElement("div");
+                        deco.className = "rounded-2xl bg-sky-200/50 border-2 border-dashed border-sky-400 flex items-center justify-center p-2 opacity-60";
+                        deco.innerHTML = `<div class="w-6 h-6">${getSvg("tile_goose")}</div>`;
+                        container.appendChild(deco);
+                        continue;
+                    }
+
+                    const tIdx = cellInfo.tileIdx;
+                    const tileObj = boardTiles[tIdx];
+                    const isBlackHoleHere = activeBlackHoleTiles.includes(tIdx);
+
+                    const cell = document.createElement("div");
+                    cell.id = `board-tile-${tIdx}`;
+                    let bgStyle = "bg-white hover:bg-slate-50";
+                    let svgIcon = "";
+                    let subLabel = "";
+
+                    if (tIdx === 0) {
+                        bgStyle = "bg-emerald-300";
+                        svgIcon = getSvg("tile_start");
+                        subLabel = "DÉPART";
+                    } else if (tIdx === gameConfig.totalTiles) {
+                        bgStyle = "bg-amber-300";
+                        svgIcon = getSvg("tile_finish");
+                        subLabel = "VICTOIRE";
+                    } else if (isBlackHoleHere) {
+                        bgStyle = "bg-purple-400";
+                        svgIcon = `<div class="vortex-spin w-full h-full">${getSvg("tile_blackhole")}</div>`;
+                        subLabel = "TROU NOIR";
+                    } else if (tileObj.type !== "normal") {
+                        const def = SPECIAL_TILE_TYPES[tileObj.type];
+                        bgStyle = def.bgClass;
+                        svgIcon = getSvg(def.svgKey);
+                        if (tileObj.type === "tunnel" && tileObj.linkedTunnel !== null) {
+                            subLabel = `VERS #${tileObj.linkedTunnel}`;
+                        } else if (tileObj.type === "goose" && activeLaw && activeLaw.id === "goose_strike") {
+                            subLabel = "GRÈVE";
+                        }
+                    }
+
+                    cell.className = `board-tile p-1.5 flex flex-col justify-between cursor-pointer ${bgStyle}`;
+                    cell.onclick = () => inspectTile(tIdx);
+                    cell.onmouseenter = () => inspectTile(tIdx);
+
+                    const playersHere = players.filter(p => p.tile === tIdx);
+
+                    cell.innerHTML = `
+                        <div class="flex items-center justify-between w-full z-10">
+                            <span class="px-1.5 py-0.5 rounded-md bg-slate-900 text-white font-cartoon font-bold text-[10px] leading-none">
+                                ${tIdx}
+                            </span>
+                            <span class="opacity-70">
+                                ${tIdx === gameConfig.totalTiles ? '' : getArrowSvg(cellInfo.dir)}
+                            </span>
+                        </div>
+
+                        <div class="flex flex-col items-center justify-center my-auto pointer-events-none">
+                            ${svgIcon ? `<div class="w-7 h-7 sm:w-8 sm:h-8">${svgIcon}</div>` : `<div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>`}
+                            ${subLabel ? `<span class="text-[8px] font-extrabold uppercase px-1 rounded bg-white border border-slate-800 text-slate-900 mt-0.5 leading-tight">${subLabel}</span>` : ''}
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-center gap-0.5 z-20 min-h-[20px]">
+                            ${playersHere.map(p => {
+                                const isCurrent = p.id === players[currentPlayerIndex]?.id && !gameEnded;
+                                return `
+                                    <div id="pawn-token-${p.id}" title="${p.name}"
+                                        class="pawn-token ${isCurrent ? 'pawn-active-bounce' : ''} w-6 h-6 rounded-full flex items-center justify-center p-0.5"
+                                        style="background:${p.colorHex}; color:#ffffff;">
+                                        ${getSvg(PAWN_CATALOG[p.iconKey].svgKey)}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+
+                    container.appendChild(cell);
+                }
+            }
+        }
+
+        // Trigger a floating cartoon comic callout over a specific tile
+        function spawnTileCallout(tIdx, text, bgClass = "bg-amber-300") {
+            const tileEl = document.getElementById(`board-tile-${tIdx}`);
+            const layer = document.getElementById("fx-overlay-layer");
+            if (!tileEl || !layer) return;
+
+            tileEl.classList.remove("tile-fx-shake");
+            void tileEl.offsetWidth;
+            tileEl.classList.add("tile-fx-shake");
+
+            const rect = tileEl.getBoundingClientRect();
+            const badge = document.createElement("div");
+            badge.className = `comic-pop fixed px-3 py-1 rounded-2xl border-3 border-slate-900 shadow-[0_4px_0_#1e293b] font-cartoon font-bold text-xs sm:text-sm text-slate-900 ${bgClass}`;
+            badge.style.left = `${rect.left + rect.width / 2}px`;
+            badge.style.top = `${rect.top}px`;
+            badge.textContent = text;
+
+            layer.appendChild(badge);
+            setTimeout(() => badge.remove(), 1200);
+        }
+
+        function spawnVictoryConfetti() {
+            const colors = ["#fde047", "#6ee7b7", "#fda4af", "#7dd3fc", "#d8b4fe", "#fdba74"];
+            for (let i = 0; i < 45; i++) {
+                const piece = document.createElement("div");
+                piece.className = "confetti-piece rounded-sm";
+                piece.style.left = `${Math.random() * 100}vw`;
+                piece.style.top = `-20px`;
+                piece.style.backgroundColor = colors[i % colors.length];
+                piece.style.animationDelay = `${Math.random() * 0.9}s`;
+                document.body.appendChild(piece);
+                setTimeout(() => piece.remove(), 3400);
+            }
+        }
+
+        function inspectTile(tIdx) {
+            const tileObj = boardTiles[tIdx];
+            if (!tileObj) return;
+            const iconEl = document.getElementById("inspector-icon");
+            const titleEl = document.getElementById("inspector-title");
+            const descEl = document.getElementById("inspector-desc");
+            const coordEl = document.getElementById("inspector-coords");
+
+            coordEl.textContent = `Case #${tIdx}`;
+
+            if (activeBlackHoleTiles.includes(tIdx)) {
+                iconEl.innerHTML = getSvg("tile_blackhole");
+                titleEl.textContent = `Case ${tIdx} — Trou Noir Actif !`;
+                descEl.textContent = "Aspire les joueurs situés sur les cases adjacentes et les expulse aléatoirement.";
+                return;
+            }
+
+            if (tIdx === 0) {
+                iconEl.innerHTML = getSvg("tile_start");
+                titleEl.textContent = "Case 0 — Départ";
+                descEl.textContent = "Point de départ de tous les aventuriers.";
+            } else if (tIdx === gameConfig.totalTiles) {
+                iconEl.innerHTML = getSvg("tile_finish");
+                titleEl.textContent = `Case ${gameConfig.totalTiles} — Arrivée Finale`;
+                descEl.textContent = "Atteignez cette case avec le compte exact aux dés pour gagner (sinon vous rebondissez en arrière !).";
+            } else if (tileObj.type === "normal") {
+                iconEl.innerHTML = getSvg("tile_normal");
+                titleEl.textContent = `Case ${tIdx} — Case Normale`;
+                descEl.textContent = "Aucun effet particulier, reposez-vous tranquillement.";
+            } else {
+                const def = SPECIAL_TILE_TYPES[tileObj.type];
+                iconEl.innerHTML = getSvg(def.svgKey);
+                titleEl.textContent = `Case ${tIdx} — ${def.name}`;
+                if (tileObj.type === "tunnel") {
+                    descEl.textContent = `${def.desc} (Reliée au Tunnel #${tileObj.linkedTunnel})`;
+                } else {
+                    descEl.textContent = def.desc;
+                }
+            }
+        }
+
+        function renderSidebarPlayers() {
+            const list = document.getElementById("players-sidebar-list");
+            list.innerHTML = "";
+
+            players.forEach((p, idx) => {
+                const isTurn = idx === currentPlayerIndex && !gameEnded;
+                const row = document.createElement("div");
+                row.className = `flex items-center justify-between p-2.5 rounded-2xl border-2 border-slate-800 transition ${
+                    isTurn ? 'bg-amber-200 shadow-[0_3px_0_#1e293b]' : 'bg-slate-50'
+                }`;
+
+                let statusBadges = "";
+                if (p.skipTurns > 0) {
+                    statusBadges += `<span class="px-2 py-0.5 rounded-md bg-orange-300 border border-slate-800 text-slate-900 text-[10px] font-bold">Digestion (${p.skipTurns})</span>`;
+                }
+                if (p.heavyNextTurn) {
+                    statusBadges += `<span class="px-2 py-0.5 rounded-md bg-amber-300 border border-slate-800 text-slate-900 text-[10px] font-bold">Alourdi (÷2)</span>`;
+                }
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center p-1 shrink-0 border-2 border-slate-800"
+                            style="background:${p.colorHex}; color:#ffffff;">
+                            ${getSvg(PAWN_CATALOG[p.iconKey].svgKey)}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-slate-900 truncate flex items-center gap-1.5">
+                                <span>${p.name}</span>
+                                <span class="w-4 h-4 inline-block shrink-0">${getSvg(p.isBot ? 'ui_bot' : 'ui_human')}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1 mt-0.5">${statusBadges}</div>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="px-2.5 py-1 rounded-xl bg-white border-2 border-slate-800 text-xs font-bold text-slate-900">
+                            Case ${p.tile}
+                        </span>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function renderActivePlayerPanel() {
+            const p = players[currentPlayerIndex];
+            if (!p) return;
+
+            const avatar = document.getElementById("active-player-avatar");
+            avatar.style.background = p.colorHex;
+            avatar.style.color = "#ffffff";
+            avatar.innerHTML = getSvg(PAWN_CATALOG[p.iconKey].svgKey);
+
+            document.getElementById("active-player-name").textContent = p.name;
+            document.getElementById("active-player-pos").innerHTML = `Case actuelle : <strong class="text-indigo-700">${p.tile}</strong> / ${gameConfig.totalTiles}`;
+
+            const badge = document.getElementById("turn-type-badge");
+            if (p.isBot) {
+                badge.textContent = "Tour du Bot IA";
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-sky-200 border-2 border-slate-800 text-slate-900 shadow-[0_2px_0_#1e293b]";
+            } else {
+                badge.textContent = "Votre Tour";
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-300 border-2 border-slate-800 text-slate-900 shadow-[0_2px_0_#1e293b]";
+            }
+
+            const rollBtn = document.getElementById("btn-roll-dice");
+            rollBtn.disabled = p.isBot || isTurnBusy || gameEnded;
+        }
+
+        function renderTopBanners() {
+            document.getElementById("round-counter").textContent = roundNumber;
+            const bhBadge = document.getElementById("blackhole-countdown-badge");
+            if (gameConfig.blackHoleCount <= 0) {
+                bhBadge.classList.add("hidden");
+            } else {
+                bhBadge.classList.remove("hidden");
+                const rem = gameConfig.blackHoleFreq - ((roundNumber - 1) % gameConfig.blackHoleFreq);
+                document.getElementById("bh-countdown").textContent = `${rem} (${gameConfig.blackHoleCount}x)`;
+            }
+
+            const lawBanner = document.getElementById("active-law-banner");
+            if (activeLaw && activeLaw.turnsRemaining > 0) {
+                lawBanner.classList.remove("hidden");
+                lawBanner.classList.add("flex");
+                document.getElementById("active-law-icon").innerHTML = getSvg(activeLaw.svgKey);
+                document.getElementById("active-law-text").textContent = activeLaw.name;
+                document.getElementById("active-law-turns").textContent = `${activeLaw.turnsRemaining} lancer(s)`;
+            } else {
+                lawBanner.classList.add("hidden");
+                lawBanner.classList.remove("flex");
+            }
+        }
+
+        function renderDiceBoxes(values, isRolling = false) {
+            const container = document.getElementById("dice-container");
+            container.innerHTML = "";
+            values.forEach(val => {
+                const die = document.createElement("div");
+                die.className = `die-cartoon w-12 h-12 rounded-2xl p-1.5 flex items-center justify-center ${isRolling ? 'die-rolling' : ''}`;
+                die.innerHTML = renderDieSvgFace(val);
+                container.appendChild(die);
+            });
+        }
+
+        function checkAndRunCurrentTurn() {
+            if (gameEnded) return;
+            renderAll();
+
+            const player = players[currentPlayerIndex];
+            renderDiceBoxes(Array(Math.min(12, gameConfig.diceCount)).fill("?"), false);
+
+            if (player.skipTurns > 0) {
+                isTurnBusy = true;
+                renderActivePlayerPanel();
+                document.getElementById("dice-result-summary").textContent = `${player.name} digère à l'Auberge et passe son tour !`;
+                addLog("tile_inn", `${player.name} digère à l'Auberge du Gavage et passe son tour !`, "bg-orange-100");
+                spawnTileCallout(player.tile, "ZZZ... DIGESTION !", "bg-orange-300");
+                player.skipTurns--;
+                setTimeout(() => {
+                    advanceToNextPlayer();
+                }, 1300);
+                return;
+            }
+
+            isTurnBusy = false;
+            renderActivePlayerPanel();
+
+            if (player.isBot) {
+                document.getElementById("dice-result-summary").textContent = `${player.name} prépare son lancer...`;
+                setTimeout(() => {
+                    triggerTurnRoll();
+                }, 850);
+            } else {
+                document.getElementById("dice-result-summary").textContent = `À vous de jouer, ${player.name} !`;
+            }
+        }
+
+        function rollRawDice(count) {
+            const forceInput = document.getElementById("test-force-dice");
+            if (forceInput && forceInput.value.trim() !== "") {
+                const parsed = forceInput.value.split(",").map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 1 && n <= 6);
+                forceInput.value = "";
+                if (parsed.length > 0) {
+                    while (parsed.length < count) parsed.push(parsed[0]);
+                    return parsed.slice(0, count);
+                }
+            }
+
+            const res = [];
+            for (let i = 0; i < count; i++) {
+                res.push(Math.floor(Math.random() * 6) + 1);
+            }
+            return res;
+        }
+
+        function triggerTurnRoll() {
+            if (isTurnBusy || gameEnded) return;
+            isTurnBusy = true;
+            renderActivePlayerPanel();
+
+            const player = players[currentPlayerIndex];
+            renderDiceBoxes(Array(Math.min(12, gameConfig.diceCount)).fill("?"), true);
+            document.getElementById("dice-result-summary").textContent = "Les dés roulent...";
+
+            setTimeout(() => {
+                const rawDice = rollRawDice(gameConfig.diceCount);
+                let effectiveDice = [...rawDice];
+                let modifierNotes = [];
+
+                if (activeLaw && activeLaw.id === "speed_tax" && activeLaw.turnsRemaining > 0) {
+                    effectiveDice = effectiveDice.map(d => (d > 3 ? 1 : d));
+                    modifierNotes.push("Taxe Vitesse (>3 ramené à 1)");
+                }
+
+                renderDiceBoxes(effectiveDice.slice(0, 18), false);
+
+                let totalMove = effectiveDice.reduce((a, b) => a + b, 0);
+
+                if (player.heavyNextTurn) {
+                    totalMove = Math.max(1, Math.floor(totalMove / 2));
+                    player.heavyNextTurn = false;
+                    modifierNotes.push("Alourdi ÷2");
+                }
+
+                let direction = 1;
+                if (activeLaw && activeLaw.id === "reverse_gravity" && activeLaw.turnsRemaining > 0) {
+                    direction = -1;
+                    modifierNotes.push("Gravité Inversée");
+                }
+
+                if (activeLaw && activeLaw.turnsRemaining > 0) {
+                    activeLaw.turnsRemaining--;
+                    if (activeLaw.turnsRemaining === 0) {
+                        addLog("tile_law", `La loi « ${activeLaw.name} » prend fin !`, "bg-slate-100");
+                        activeLaw = null;
+                    }
+                }
+
+                const signedMove = totalMove * direction;
+                const noteStr = modifierNotes.length > 0 ? ` [${modifierNotes.join(", ")}]` : "";
+                document.getElementById("dice-result-summary").textContent =
+                    `Score : ${signedMove > 0 ? '+' + signedMove : signedMove} cases${noteStr}`;
+
+                addLog("ui_dice", `${player.name} obtient ${signedMove > 0 ? '+' + signedMove : signedMove} cases${noteStr}.`, "bg-white");
+
+                animatePlayerMoveByDelta(player, signedMove, rawDice, () => {
+                    if (!gameEnded) {
+                        advanceToNextPlayer();
+                    }
+                });
+            }, 520);
+        }
+
+        // Animated step-by-step hopping movement (handles bounce on final tile!)
+        function animatePlayerMoveByDelta(player, delta, lastRawDice, onComplete, chainDepth = 0) {
+            const N = gameConfig.totalTiles;
+            const steps = [];
+            let cur = player.tile;
+            let dir = delta >= 0 ? 1 : -1;
+            let remaining = Math.abs(delta);
+
+            while (remaining > 0) {
+                let next = cur + dir;
+                if (next > N) {
+                    dir = -1;
+                    next = N - 1;
+                }
+                if (next < 0) {
+                    next = 0;
+                    steps.push(next);
+                    break;
+                }
+                cur = next;
+                steps.push(cur);
+                remaining--;
+            }
+
+            if (steps.length === 0) {
+                onComplete();
+                return;
+            }
+
+            const stepDelay = Math.max(45, Math.min(185, Math.floor(1100 / steps.length)));
+            let stepIdx = 0;
+
+            function doNextHop() {
+                if (stepIdx >= steps.length) {
+                    renderAll();
+                    if (player.tile === N) {
+                        handleVictory(player);
+                        return;
+                    }
+                    if (chainDepth >= 4) {
+                        onComplete();
+                        return;
+                    }
+                    setTimeout(() => {
+                        resolveTileEffect(player, Math.abs(delta), lastRawDice, onComplete, chainDepth);
+                    }, 350);
+                    return;
+                }
+
+                const nextTile = steps[stepIdx];
+                if (stepIdx > 0 && steps[stepIdx - 1] === N && nextTile === N - 1) {
+                    spawnTileCallout(N, "REBOND !", "bg-amber-300");
+                }
+
+                player.tile = nextTile;
+                renderBoard();
+                renderActivePlayerPanel();
+                renderSidebarPlayers();
+
+                const tileEl = document.getElementById(`board-tile-${nextTile}`);
+                if (tileEl) tileEl.classList.add("tile-step-highlight");
+                const pawnEl = document.getElementById(`pawn-token-${player.id}`);
+                if (pawnEl) pawnEl.classList.add("pawn-hopping");
+
+                stepIdx++;
+                setTimeout(doNextHop, stepDelay);
+            }
+
+            doNextHop();
+        }
+
+        function resolveTileEffect(player, lastMoveMagnitude, lastRawDice, onComplete, chainDepth) {
+            const tIdx = player.tile;
+            const tileObj = boardTiles[tIdx];
+            const maxInner = Math.max(2, gameConfig.totalTiles - 1);
+
+            if (activeBlackHoleTiles.includes(tIdx)) {
+                const randomDest = Math.floor(Math.random() * (maxInner - 1)) + 1;
+                spawnTileCallout(tIdx, "ASPIRÉ !", "bg-purple-300");
+                addLog("tile_blackhole", `${player.name} tombe dans un Trou Noir (#${tIdx}) et atterrit case #${randomDest} !`, "bg-purple-100");
+                setTimeout(() => {
+                    player.tile = randomDest;
+                    renderAll();
+                    spawnTileCallout(randomDest, "POUF !", "bg-purple-300");
+                    setTimeout(onComplete, 650);
+                }, 550);
+                return;
+            }
+
+            switch (tileObj.type) {
+                case "goose": {
+                    if (activeLaw && activeLaw.id === "goose_strike") {
+                        spawnTileCallout(tIdx, "EN GRÈVE !", "bg-amber-200");
+                        addLog("law_strike", `Case Oie (#${tIdx}) : Les oies sont en grève ! Aucun bonus pour ${player.name}.`, "bg-amber-100");
+                        onComplete();
+                    } else {
+                        spawnTileCallout(tIdx, `COIN COIN ! +${lastMoveMagnitude}`, "bg-amber-300");
+                        addLog("tile_goose", `Case Oie (#${tIdx}) ! ${player.name} double son déplacement (+${lastMoveMagnitude} cases) !`, "bg-amber-100");
+                        setTimeout(() => {
+                            animatePlayerMoveByDelta(player, lastMoveMagnitude, lastRawDice, onComplete, chainDepth + 1);
+                        }, 450);
+                    }
+                    break;
+                }
+
+                case "tunnel": {
+                    const dest = tileObj.linkedTunnel ?? tIdx;
+                    spawnTileCallout(tIdx, `TUNNEL ➔ #${dest}`, "bg-cyan-300");
+                    addLog("tile_tunnel", `Case Tunnel (#${tIdx}) ! ${player.name} file sous terre jusqu'à la case #${dest} !`, "bg-cyan-100");
+                    setTimeout(() => {
+                        player.tile = dest;
+                        renderAll();
+                        spawnTileCallout(dest, "COUCOU !", "bg-cyan-300");
+                        setTimeout(onComplete, 650);
+                    }, 550);
+                    break;
+                }
+
+                case "inn": {
+                    player.skipTurns = 1;
+                    player.heavyNextTurn = true;
+                    spawnTileCallout(tIdx, "MIAM ! GAVAGE !", "bg-orange-300");
+                    addLog("tile_inn", `Auberge du Gavage (#${tIdx}) ! ${player.name} passe 1 tour et sera alourdi (÷2) ensuite.`, "bg-orange-100");
+                    renderAll();
+                    setTimeout(onComplete, 700);
+                    break;
+                }
+
+                case "mirror": {
+                    const sym = gameConfig.totalTiles - tIdx;
+                    spawnTileCallout(tIdx, `MIROIR ➔ #${sym}`, "bg-sky-300");
+                    addLog("tile_mirror", `Miroir aux Alouettes (#${tIdx}) ! ${player.name} est téléporté sur la case symétrique #${sym}.`, "bg-sky-100");
+                    setTimeout(() => {
+                        player.tile = sym;
+                        renderAll();
+                        spawnTileCallout(sym, "ZAP !", "bg-sky-300");
+                        setTimeout(onComplete, 650);
+                    }, 550);
+                    break;
+                }
+
+                case "fox": {
+                    let prevGoose = 0;
+                    for (let i = tIdx - 1; i >= 1; i--) {
+                        if (boardTiles[i].type === "goose") {
+                            prevGoose = i;
+                            break;
+                        }
+                    }
+                    spawnTileCallout(tIdx, "AU SECOURS !", "bg-rose-300");
+                    addLog("tile_fox", `Le Renard Rusé (#${tIdx}) ! ${player.name} panique et recule jusqu'à la ${prevGoose > 0 ? 'Case Oie #' + prevGoose : 'case Départ #0'} !`, "bg-rose-100");
+                    setTimeout(() => {
+                        animatePlayerMoveByDelta(player, prevGoose - tIdx, lastRawDice, onComplete, 99);
+                    }, 450);
+                    break;
+                }
+
+                case "portal": {
+                    openPortalRescueModal(player, onComplete);
+                    break;
+                }
+
+                case "well": {
+                    openWellCoinModal(player, lastRawDice, onComplete, chainDepth);
+                    break;
+                }
+
+                case "angry_goose": {
+                    openAngryGooseDuelModal(player, onComplete);
+                    break;
+                }
+
+                case "law": {
+                    openLawModal(player, onComplete);
+                    break;
+                }
+
+                default:
+                    onComplete();
+                    break;
+            }
+        }
+
+        function advanceToNextPlayer() {
+            turnsInCurrentRound++;
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+
+            if (turnsInCurrentRound >= players.length) {
+                turnsInCurrentRound = 0;
+                roundNumber++;
+
+                if (gameConfig.blackHoleCount > 0 && roundNumber > 1 && (roundNumber - 1) % gameConfig.blackHoleFreq === 0) {
+                    spawnBlackHoles(false, () => {
+                        checkAndRunCurrentTurn();
+                    });
+                    return;
+                }
+            }
+
+            checkAndRunCurrentTurn();
+        }
+
+        // Unlimited simultaneous Black Holes spawner
+        function spawnBlackHoles(isManualTest = false, callback = null) {
+            const countToSpawn = isManualTest ? Math.max(1, gameConfig.blackHoleCount) : gameConfig.blackHoleCount;
+            if (countToSpawn <= 0) {
+                if (callback) callback();
+                return;
+            }
+
+            const N = gameConfig.totalTiles;
+            const candidates = [];
+            for (let i = 2; i < N; i++) candidates.push(i);
+            shuffleArray(candidates);
+
+            activeBlackHoleTiles = candidates.slice(0, Math.min(countToSpawn, candidates.length));
+
+            addLog("tile_blackhole", `ALERTE COSMIQUE : ${activeBlackHoleTiles.length} Trou(s) Noir(s) apparaissent sur [${activeBlackHoleTiles.join(", ")}] !`, "bg-purple-200");
+
+            activeBlackHoleTiles.forEach(bhTile => {
+                spawnTileCallout(bhTile, "TROU NOIR !", "bg-purple-300");
+            });
+
+            const affectedPlayers = players.filter(p =>
+                p.tile > 0 && p.tile < N && activeBlackHoleTiles.some(bh => Math.abs(p.tile - bh) <= 1)
+            );
+
+            affectedPlayers.forEach(p => {
+                const oldTile = p.tile;
+                let randomDest = Math.floor(Math.random() * Math.max(1, N - 2)) + 1;
+                p.tile = randomDest;
+                addLog("tile_blackhole", `${p.name} (case #${oldTile}) est aspiré et expulsé vers la case #${randomDest} !`, "bg-purple-100");
+            });
+
+            renderAll();
+            if (callback) setTimeout(callback, 950);
+        }
+
+        function openModal(htmlContent) {
+            const backdrop = document.getElementById("modal-backdrop");
+            const content = document.getElementById("modal-content");
+            content.innerHTML = htmlContent;
+            backdrop.classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("modal-backdrop").classList.add("hidden");
+        }
+
+        function openLawModal(player, onComplete) {
+            if (player.isBot) {
+                const chosenLaw = LAWS_CATALOG[Math.floor(Math.random() * LAWS_CATALOG.length)];
+                addLog(chosenLaw.svgKey, `Case Loi : ${player.name} (Bot) vote la loi « ${chosenLaw.name} » !`, "bg-indigo-100");
+                applyChosenLaw(chosenLaw, player, onComplete);
+                return;
+            }
+
+            const cardsHtml = LAWS_CATALOG.map(law => `
+                <button onclick="selectLawFromModal('${law.id}')"
+                    class="cartoon-btn w-full text-left p-3.5 rounded-2xl bg-amber-50 hover:bg-amber-200 flex items-start gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-white border-2 border-slate-800 p-1.5 shrink-0">
+                        ${getSvg(law.svgKey)}
+                    </div>
+                    <div>
+                        <div class="font-bold text-slate-900 text-sm flex flex-wrap items-center gap-2">
+                            <span>${law.name}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-white border border-slate-800 text-slate-900">${law.subtitle}</span>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-700 mt-1">${law.desc}</p>
+                    </div>
+                </button>
+            `).join("");
+
+            window._pendingLawCallback = (lawId) => {
+                const chosen = LAWS_CATALOG.find(l => l.id === lawId);
+                closeModal();
+                applyChosenLaw(chosen, player, onComplete);
+            };
+
+            openModal(`
+                <div class="text-center mb-4">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-200 border-3 border-slate-800 p-2 mb-2">
+                        ${getSvg("tile_law")}
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900">Parlement de l'Oie — Votez une Loi !</h3>
+                    <p class="text-xs font-bold text-slate-600 mt-1">${player.name}, choisissez le décret qui s'appliquera à tous :</p>
+                </div>
+                <div class="space-y-2.5">${cardsHtml}</div>
+            `);
+        }
+
+        function selectLawFromModal(lawId) {
+            if (window._pendingLawCallback) window._pendingLawCallback(lawId);
+        }
+
+        function applyChosenLaw(law, player, onComplete) {
+            if (law.id === "goose_communism") {
+                const sum = players.reduce((acc, p) => acc + p.tile, 0);
+                const avgTile = Math.max(0, Math.min(gameConfig.totalTiles - 1, Math.round(sum / players.length)));
+                players.forEach(p => { p.tile = avgTile; });
+                addLog("law_equal", `COMMUNISME DE L'OIE voté par ${player.name} ! Moyenne = case #${avgTile} pour tout le monde !`, "bg-rose-100");
+                renderAll();
+                spawnTileCallout(avgTile, `TOUS CASE #${avgTile} !`, "bg-rose-300");
+                setTimeout(onComplete, 750);
+                return;
+            }
+
+            activeLaw = {
+                id: law.id,
+                name: law.name,
+                svgKey: law.svgKey,
+                turnsRemaining: law.durationRounds * players.length
+            };
+            addLog(law.svgKey, `${player.name} promulgue la loi « ${law.name} » !`, "bg-amber-100");
+            renderAll();
+            setTimeout(onComplete, 550);
+        }
+
+        function openPortalRescueModal(player, onComplete) {
+            const checkHasDouble = (diceArr) => {
+                const counts = {};
+                for (const d of diceArr) {
+                    counts[d] = (counts[d] || 0) + 1;
+                    if (counts[d] >= 2) return true;
+                }
+                return false;
+            };
+
+            if (player.isBot) {
+                const rescueRoll = rollRawDice(gameConfig.diceCount);
+                const saved = checkHasDouble(rescueRoll);
+                if (saved) {
+                    spawnTileCallout(player.tile, "SAUVÉ (DOUBLE) !", "bg-emerald-300");
+                    addLog("tile_portal", `Case Portail : ${player.name} obtient un double [${rescueRoll.join(", ")}] et reste sur place !`, "bg-emerald-100");
+                } else {
+                    spawnTileCallout(player.tile, "RETOUR CASE 0 !", "bg-rose-300");
+                    addLog("tile_portal", `Case Portail : ${player.name} rate le double [${rescueRoll.join(", ")}] et retourne à la case 0 !`, "bg-rose-100");
+                    player.tile = 0;
+                }
+                renderAll();
+                setTimeout(onComplete, 750);
+                return;
+            }
+
+            window._runPortalRescue = () => {
+                const rescueRoll = rollRawDice(gameConfig.diceCount);
+                const saved = checkHasDouble(rescueRoll);
+                const resBox = document.getElementById("portal-roll-result");
+                resBox.innerHTML = `
+                    <div class="flex flex-wrap justify-center gap-2 my-3">
+                        ${rescueRoll.slice(0, 12).map(d => `<div class="die-cartoon w-12 h-12 rounded-xl p-1.5">${renderDieSvgFace(d)}</div>`).join("")}
+                    </div>
+                    <p class="text-sm font-bold ${saved ? 'text-emerald-700' : 'text-rose-700'}">
+                        ${saved ? 'DOUBLE OBTENU ! Vous résistez au portail !' : 'Aucun double... Retour à la case Départ (#0) !'}
+                    </p>
+                `;
+                if (!saved) {
+                    player.tile = 0;
+                    addLog("tile_portal", `Case Portail : ${player.name} obtient [${rescueRoll.join(", ")}] (sans double) et retourne case 0 !`, "bg-rose-100");
+                } else {
+                    addLog("tile_portal", `Case Portail : ${player.name} obtient un double [${rescueRoll.join(", ")}] et se sauve !`, "bg-emerald-100");
+                }
+                renderAll();
+                setTimeout(() => {
+                    closeModal();
+                    onComplete();
+                }, 1500);
+            };
+
+            openModal(`
+                <div class="text-center">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-fuchsia-200 border-3 border-slate-800 p-2 mb-2">
+                        ${getSvg("tile_portal")}
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900">Case Portail Instable !</h3>
+                    <p class="text-xs font-bold text-slate-600 mt-1">
+                        ${player.name}, faites un <strong>Double</strong> lors de ce lancer de sauvetage sinon retour à la case 0 !
+                    </p>
+                    <div id="portal-roll-result" class="my-5">
+                        <button onclick="window._runPortalRescue()" class="cartoon-btn px-6 py-3 rounded-2xl bg-fuchsia-300 hover:bg-fuchsia-200 text-slate-900 font-bold">
+                            Lancer les Dés de Sauvetage
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function openWellCoinModal(player, lastRawDice, onComplete, chainDepth) {
+            const applyCoinOutcome = (isHeads) => {
+                const delta = isHeads ? 10 : -5;
+                spawnTileCallout(player.tile, isHeads ? "PILE ! +10" : "FACE ! -5", isHeads ? "bg-emerald-300" : "bg-rose-300");
+                addLog("tile_well", `Puits à Souhaits : ${player.name} obtient ${isHeads ? 'PILE (+10 cases !)' : 'FACE (-5 cases !)'}`, isHeads ? "bg-emerald-100" : "bg-rose-100");
+                animatePlayerMoveByDelta(player, delta, lastRawDice, onComplete, chainDepth + 1);
+            };
+
+            if (player.isBot) {
+                const isHeads = Math.random() < 0.5;
+                applyCoinOutcome(isHeads);
+                return;
+            }
+
+            window._flipWellCoin = () => {
+                const coinBox = document.getElementById("well-coin-box");
+                coinBox.innerHTML = `<div class="w-20 h-20 mx-auto rounded-full bg-amber-300 border-3 border-slate-800 p-3 coin-flip-anim">${getSvg("tile_well")}</div>`;
+                setTimeout(() => {
+                    const isHeads = Math.random() < 0.5;
+                    coinBox.innerHTML = `
+                        <div class="w-20 h-20 mx-auto rounded-full ${isHeads ? 'bg-emerald-300' : 'bg-rose-300'} border-3 border-slate-800 text-slate-900 flex items-center justify-center font-cartoon font-bold text-xl shadow-[0_4px_0_#1e293b]">
+                            ${isHeads ? 'PILE' : 'FACE'}
+                        </div>
+                        <p class="mt-3 font-bold text-sm ${isHeads ? 'text-emerald-700' : 'text-rose-700'}">
+                            ${isHeads ? 'GEYSER ! Vous bondissez de +10 cases !' : 'GLISSADE ! Vous reculez de -5 cases !'}
+                        </p>
+                    `;
+                    setTimeout(() => {
+                        closeModal();
+                        applyCoinOutcome(isHeads);
+                    }, 1250);
+                }, 700);
+            };
+
+            openModal(`
+                <div class="text-center">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-200 border-3 border-slate-800 p-2 mb-2">
+                        ${getSvg("tile_well")}
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900">Le Puits à Souhaits Trafiqué</h3>
+                    <p class="text-xs font-bold text-slate-600 mt-1">
+                        Jetez une pièce : <strong>Pile</strong> = Geyser (+10 cases), <strong>Face</strong> = Glissade (-5 cases) !
+                    </p>
+                    <div id="well-coin-box" class="my-5">
+                        <button onclick="window._flipWellCoin()" class="cartoon-btn px-6 py-3 rounded-2xl bg-amber-300 hover:bg-amber-200 text-slate-900 font-bold">
+                            Lancer la Pièce
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function openAngryGooseDuelModal(player, onComplete) {
+            const opponents = players.filter(p => p.id !== player.id);
+
+            const executeDuel = (opponent) => {
+                const rollA = rollRawDice(gameConfig.diceCount).reduce((a, b) => a + b, 0);
+                const rollB = rollRawDice(gameConfig.diceCount).reduce((a, b) => a + b, 0);
+                const diff = Math.abs(rollA - rollB);
+
+                let summaryText = "";
+                if (rollA > rollB) {
+                    opponent.tile = Math.max(0, opponent.tile - diff);
+                    summaryText = `Duel : ${player.name} (${rollA}) bat ${opponent.name} (${rollB}) ! ${opponent.name} recule de ${diff} case(s).`;
+                    spawnTileCallout(opponent.tile, `-${diff} CASES !`, "bg-rose-300");
+                } else if (rollB > rollA) {
+                    player.tile = Math.max(0, player.tile - diff);
+                    summaryText = `Duel : ${opponent.name} (${rollB}) bat ${player.name} (${rollA}) ! ${player.name} recule de ${diff} case(s).`;
+                    spawnTileCallout(player.tile, `-${diff} CASES !`, "bg-rose-300");
+                } else {
+                    summaryText = `Duel : Égalité (${rollA} partout) entre ${player.name} et ${opponent.name} !`;
+                }
+
+                addLog("tile_angry_goose", summaryText, "bg-rose-100");
+                renderAll();
+                return { rollA, rollB, diff, summaryText };
+            };
+
+            if (player.isBot) {
+                const target = [...opponents].sort((a, b) => b.tile - a.tile)[0];
+                executeDuel(target);
+                setTimeout(onComplete, 750);
+                return;
+            }
+
+            window._pickDuelOpponent = (oppId) => {
+                const opp = players.find(p => p.id === oppId);
+                const result = executeDuel(opp);
+                const box = document.getElementById("duel-selection-box");
+                box.innerHTML = `
+                    <div class="p-4 rounded-2xl bg-amber-100 border-2 border-slate-800 text-center space-y-2">
+                        <div class="text-sm font-bold text-slate-900">${player.name} : ${result.rollA} pts — ${opp.name} : ${result.rollB} pts</div>
+                        <p class="text-xs font-bold text-slate-700">${result.summaryText}</p>
+                    </div>
+                `;
+                setTimeout(() => {
+                    closeModal();
+                    onComplete();
+                }, 1700);
+            };
+
+            openModal(`
+                <div class="text-center">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-rose-200 border-3 border-slate-800 p-2 mb-2">
+                        ${getSvg("tile_angry_goose")}
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900">L'Oie en Colère — Duel !</h3>
+                    <p class="text-xs font-bold text-slate-600 mt-1">
+                        Choisissez un adversaire : le perdant reculera de la différence des scores !
+                    </p>
+                    <div id="duel-selection-box" class="space-y-2 mt-4 max-h-[260px] overflow-y-auto pr-1 text-left">
+                        ${opponents.map(opp => `
+                            <button onclick="window._pickDuelOpponent(${opp.id})"
+                                class="cartoon-btn w-full p-3 rounded-xl bg-white hover:bg-rose-100 flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-full p-1 border-2 border-slate-800" style="background:${opp.colorHex}; color:#ffffff">${getSvg(PAWN_CATALOG[opp.iconKey].svgKey)}</div>
+                                    <span class="font-bold text-sm text-slate-900">${opp.name}</span>
+                                </div>
+                                <span class="text-xs px-2.5 py-1 rounded-lg bg-amber-200 border border-slate-800 text-slate-900 font-bold">Case #${opp.tile} • Défier</span>
+                            </button>
+                        `).join("")}
+                    </div>
+                </div>
+            `);
+        }
+
+        function handleVictory(winner) {
+            gameEnded = true;
+            isTurnBusy = false;
+            renderAll();
+            spawnVictoryConfetti();
+            addLog("tile_finish", `VICTOIRE ! ${winner.name} atterrit exactement sur la case ${gameConfig.totalTiles} !`, "bg-amber-200");
+
+            openModal(`
+                <div class="text-center py-2">
+                    <div class="w-20 h-20 mx-auto rounded-3xl bg-amber-300 border-3 border-slate-800 p-3 mb-3 animate-bounce shadow-[0_5px_0_#1e293b]">
+                        ${getSvg("tile_finish")}
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900">Victoire de ${winner.name} !</h3>
+                    <p class="text-sm font-bold text-slate-600 mt-2">
+                        Bravo ! ${winner.name} a atteint exactement la <strong>Case ${gameConfig.totalTiles}</strong> au tour ${roundNumber}.
+                    </p>
+                    <div class="mt-6 flex flex-wrap justify-center gap-3">
+                        <button onclick="closeModal(); startGameFromSetup();" class="cartoon-btn px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-sm">
+                            Rejouer
+                        </button>
+                        <button onclick="closeModal(); showSetupScreen();" class="cartoon-btn px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm">
+                            Modifier les paramètres
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function openLegendModal() {
+            const listHtml = Object.values(SPECIAL_TILE_TYPES).map(t => `
+                <div class="flex items-start gap-3 p-2.5 rounded-2xl bg-slate-50 border-2 border-slate-800">
+                    <div class="w-10 h-10 rounded-xl ${t.bgClass} border-2 border-slate-800 p-1.5 shrink-0">${getSvg(t.svgKey)}</div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-900">${t.name}</div>
+                        <div class="text-[11px] font-semibold text-slate-600">${t.desc}</div>
+                    </div>
+                </div>
+            `).join("");
+
+            openModal(`
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-bold text-slate-900">Guide des Cases & Règles</h3>
+                        <button onclick="closeModal()" class="cartoon-btn px-2.5 py-1 rounded-lg bg-rose-200 text-slate-900 text-xs font-bold">X</button>
+                    </div>
+                    <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                        ${listHtml}
+                        <div class="flex items-start gap-3 p-2.5 rounded-2xl bg-purple-100 border-2 border-slate-800">
+                            <div class="w-10 h-10 rounded-xl bg-purple-300 border-2 border-slate-800 p-1.5 shrink-0">${getSvg("tile_blackhole")}</div>
+                            <div>
+                                <div class="text-xs font-bold text-slate-900">Trou Noir (Événement périodique)</div>
+                                <div class="text-[11px] font-semibold text-slate-700">Apparaît périodiquement en quantité libre : aspire les joueurs sur les cases adjacentes et les expulse aléatoirement.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-right">
+                        <button onclick="closeModal()" class="cartoon-btn px-5 py-2 rounded-xl bg-amber-300 text-slate-900 text-xs font-bold">Fermer</button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function toggleTestPanel() {
+            const panel = document.getElementById("test-panel");
+            panel.classList.toggle("hidden");
+        }
+
+        function testTeleportActivePlayer() {
+            if (!players.length || gameEnded || isTurnBusy) return;
+            const p = players[currentPlayerIndex];
+            const dest = Math.max(0, Math.min(gameConfig.totalTiles, parseInt(document.getElementById("test-teleport-tile").value, 10) || 0));
+            addLog("ui_flask", `[TEST] Déplacement animé de ${p.name} vers la case #${dest}.`, "bg-emerald-100");
+            isTurnBusy = true;
+            animatePlayerMoveByDelta(p, dest - p.tile, [2, 2], () => {
+                isTurnBusy = false;
+                renderAll();
+            }, 0);
+        }
+
+        function addLog(svgKey, message, bgClass = "bg-slate-50") {
+            const logBox = document.getElementById("game-log");
+            if (!logBox) return;
+            const entry = document.createElement("div");
+            entry.className = `p-2 rounded-xl border-2 border-slate-800 flex items-start gap-2 ${bgClass}`;
+            entry.innerHTML = `
+                <div class="w-5 h-5 shrink-0 mt-0.5">${getSvg(svgKey)}</div>
+                <div class="flex-1 text-slate-900 leading-snug">${message}</div>
+            `;
+            logBox.prepend(entry);
+        }
+
+        function clearGameLog() {
+            const logBox = document.getElementById("game-log");
+            if (logBox) logBox.innerHTML = "";
+        }
+
+        window.onload = function () {
+            initSetupDefaults();
+        };
+    </script>
+</body>
+</html>
